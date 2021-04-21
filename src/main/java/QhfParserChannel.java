@@ -1,7 +1,9 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +16,8 @@ public class QhfParserChannel {
     public static Chat parseQhfFile(Path path) throws IOException {
         Chat chat = null;
         FileInputStream fs = null;
+        // all the thing with FileChannel as we need to go backwards for handling corrupted messages
+        // otherwise FileInputStream would be enough
         fileChannel = null;
         try {
             chat = new Chat();
@@ -35,7 +39,15 @@ public class QhfParserChannel {
                 chat.messages.add(parseMessage());
             }
         } catch (IOException e) {
-            throw e;
+            if (chat.messages.size() > 0) {
+                System.out.println(String.format(Configuration.tryingToSaveCorruptedFile,
+                        path.getFileName().toAbsolutePath().toString(),
+                        chat.messages.size(), chat.numberOfMsgs));
+                String txtFileName = path.getFileName().toString()
+                        .replace(".qhf", "").replace(".ahf", "")
+                        .concat("_DAMAGED.txt");
+                saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
+            } else throw e;
         } finally {
             if (fileChannel != null) fileChannel.close();
             if (fs != null) fs.close();
@@ -84,6 +96,17 @@ public class QhfParserChannel {
         fileChannel.read(buffer);
         message.setMessageByteArray(buffer.array());
 
+        // checking if the message is corrupted and trying to fix it
+        if (readInt16(0) != 1) {
+            // corrupted
+            int corruptedBytesNum = 1;
+            while (readInt16(0) != 1) {
+                fileChannel.position(previousChannelPosition + 1);
+                corruptedBytesNum++;
+            }
+            message.corruptedBytesNum = corruptedBytesNum;
+        }
+            fileChannel.position(previousChannelPosition);
         return message;
     }
 
@@ -95,6 +118,7 @@ public class QhfParserChannel {
             StringBuilder stringBuilder = new StringBuilder();
 
             for (Message message : chat.messages) {
+                // TODO add message that Message is corrupted
                 ZonedDateTime zonedDateTime = Instant.ofEpochSecond(message.unixDate).atZone(Configuration.zoneId);
                 stringBuilder.append("--------------------------------------")
                         .append(message.isSent ? ">" : "<").append("-");

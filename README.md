@@ -1,7 +1,5 @@
 # QHF (AHF) to TXT converter ##
 
-- does not support history files with a single message length more than 65Kb (most likely you do not have those)
-
 ## Author of tables ond format description - Konstantin Komarov https://github.com/MolinRE/ ##
 
 # Структура файла #

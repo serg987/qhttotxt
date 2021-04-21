@@ -11,7 +11,7 @@ public class MainEncoded {
     public static void main(String[] args) {
         Chat chat = new Chat();
         try {
-            File file = new File("E:\\!Temp\\210420\\Issues\\!ICQ_295157315_406823170.qhf");
+            File file = new File("E:\\!Temp\\210420\\Issues\\ICQ_295157315_355074648-1.qhf");
             chat = QhfParserChannel.parseQhfFile(file.toPath());
             // fs.read(); // the header is over! // changed
             System.out.println("header=" + chat.header);

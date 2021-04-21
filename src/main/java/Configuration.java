@@ -17,6 +17,8 @@ public class Configuration {
     public static final String timePatternInTxt = "HH:mm:ss dd/MM/yyyy";
     public static final String noFilesFound = "No files were found in provided path %s";
     public static final String messageWithZeroLength = "[qhtToTxt] No message available - message length is zero";
+    public static final String tryingToSaveCorruptedFile = "Seems like the file %s is damaged. " +
+            "Trying to save %d out of %d messages";
 
     static {
         defaultEncoding = System.getProperty("file.encoding", "UTF-8");

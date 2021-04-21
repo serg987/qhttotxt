@@ -14,6 +14,7 @@ public class Message {
     public int typeOfMessageField;
     public int messageLengthBlockSize;
     public int messageLength;
+    public int corruptedBytesNum;
     //private String message;
     public boolean isEncoded = false;
     private byte[] messageBytes;
