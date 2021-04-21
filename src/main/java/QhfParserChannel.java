@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 public class QhfParserChannel {
     private static File file;
     private static FileChannel fileChannel;
-    private static long currentChannelPosition;
+    private static long previousChannelPosition;
 
     public static Chat parseQhfFile(Path path) throws IOException {
         Chat chat = null;
@@ -68,11 +68,10 @@ public class QhfParserChannel {
                     Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
             return message;
         }
-        // switching between encoded/plain message; because of that there is no support
-        // for encoded messages > 65Kb
-        if (message.messageLength == 0) {
-            message.messageLength = readInt16(0);
-            // handle properly encoded messages with 0 length
+        if ((message.msgBlockSize - message.messageLength) != 27) {
+            // encoded message - go back and read Int32
+            fileChannel.position(previousChannelPosition);
+            message.messageLength = readInt32(0);
             if (message.messageLength == 0) {
                 message.setMessageByteArray(
                         Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
@@ -136,8 +135,8 @@ public class QhfParserChannel {
     }
 
     private static byte readByte(int offset) throws IOException {
-        storeCurrentChannelPosition();
-        fileChannel.position(currentChannelPosition + offset);
+        storePreviousChannelPosition();
+        fileChannel.position(previousChannelPosition + offset);
         //getOffsetInFileStream(fs, offset);
         if (channelAvailableBytes() > offset + 1) {
             return allocateByteBufferReadAndResetPosition(1).get();
@@ -146,8 +145,8 @@ public class QhfParserChannel {
     }
 
     private static int readInt32(int offset) throws IOException {
-        storeCurrentChannelPosition();
-        fileChannel.position(currentChannelPosition + offset);
+        storePreviousChannelPosition();
+        fileChannel.position(previousChannelPosition + offset);
         //getOffsetInFileStream(fs, offset);
         int out;
         if (channelAvailableBytes() > 3) {
@@ -166,8 +165,8 @@ public class QhfParserChannel {
     }
 
     private static int readInt16(int offset) throws IOException {
-        storeCurrentChannelPosition();
-        fileChannel.position(currentChannelPosition + offset);
+        storePreviousChannelPosition();
+        fileChannel.position(previousChannelPosition + offset);
         //getOffsetInFileStream(fs, offset);
         int out;
         if (channelAvailableBytes() > 1) {
@@ -182,8 +181,8 @@ public class QhfParserChannel {
     }
 
     private static String readChars(int offset, int length) throws IOException {
-        storeCurrentChannelPosition();
-        fileChannel.position(currentChannelPosition + offset);
+        storePreviousChannelPosition();
+        fileChannel.position(previousChannelPosition + offset);
         //getOffsetInFileStream(fs, offset);
         if (channelAvailableBytes() >= length) {
             ByteBuffer buffer = ByteBuffer.allocate(length);
@@ -193,8 +192,8 @@ public class QhfParserChannel {
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
     }
 
-    private static void storeCurrentChannelPosition() throws IOException {
-        currentChannelPosition = fileChannel.position();
+    private static void storePreviousChannelPosition() throws IOException {
+        previousChannelPosition = fileChannel.position();
     }
 
     private static void getOffsetInFileStream(FileInputStream fs, int offset) throws IOException {
