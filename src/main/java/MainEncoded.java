@@ -9,22 +9,10 @@ import java.util.Date;
 public class MainEncoded {
 
     public static void main(String[] args) {
-        FileInputStream fs = null;
         Chat chat = new Chat();
         try {
-            File file = new File("E:\\!Temp\\210420\\Issues\\ICQ_295157315_355074648.qhf");
-            //File file = new File("E:\\!Temp\\210420\\History\\ICQ_295157315_469781336.qhf");
-            fs = new FileInputStream(file);
-            chat.header = readChars(fs, 0, 3);
-            if (!chat.header.equals("QHF"))
-                throw new IOException("The file " + file.getName() + " is not a qip history file");
-            chat.historySize = readInt32(fs, 1);
-            chat.numberOfMsgs = readInt32(fs, 26);
-            chat.numberOfMsgs2 = readInt32(fs, 0);
-            chat.uinLength = readInt16(fs, 2); // changed
-            chat.uin = readChars(fs, 0, chat.uinLength);
-            chat.nickNameLength = readInt16(fs, 0); // changed
-            chat.nickName = readChars(fs, 0, chat.nickNameLength);
+            File file = new File("E:\\!Temp\\210420\\Issues\\!ICQ_295157315_406823170.qhf");
+            chat = QhfParserChannel.parseQhfFile(file.toPath());
             // fs.read(); // the header is over! // changed
             System.out.println("header=" + chat.header);
             System.out.println("historySize=" + chat.historySize);
@@ -41,17 +29,17 @@ public class MainEncoded {
             System.out.println("message time=" + (Instant.ofEpochSecond(message.unixDate).atZone(zoneId).toString()));
             ZonedDateTime zonedDateTime = Instant.ofEpochSecond(message.unixDate).atZone(zoneId);
             System.out.println(zonedDateTime.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")));*/
-            int j = 0;
+/*            int j = 0;
             while (fs.available() > 6) {
                 System.out.println("Message " + j);
-                chat.messages.add(QhfParser.parseMessage(fs));
+                chat.messages.add(QhfParserChannel.parseMessage(fs));
                 j++;
-            }
+            }*/
 
             System.out.println("Messages: " + chat.messages.size());
 
 
-            QhfParser.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\4.txt"));
+            QhfParser.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
             //saveTxtFile3(chat);
             //  messages.stream().forEach(m -> System.out.println(m.message));
 
@@ -77,12 +65,6 @@ public class MainEncoded {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                fs.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 

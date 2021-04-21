@@ -10,16 +10,16 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String basePath = "E:\\!Temp\\210420\\Encoded";
+        String basePath = "E:\\!Temp\\210420\\History";
 
         List<Path> pathList = getPathList(basePath, true);
         try {
             for (Path path : pathList) {
-                Chat chat = QhfParser.parseQhfFile(path);
+                Chat chat = QhfParserChannel.parseQhfFile(path);
                 String fileName = path.getFileName().toString().toLowerCase()
                         .replace(".qhf", ".txt").replace(".ahf", ".txt");
                 Path outPath = Paths.get(path.getParent().toString(), fileName);
-                QhfParser.saveChatToTxt(chat, outPath);
+                QhfParserChannel.saveChatToTxt(chat, outPath);
                 }
         } catch (IOException e) {
             e.printStackTrace();
