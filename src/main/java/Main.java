@@ -19,12 +19,13 @@ public class Main {
                 String fileName = path.getFileName().toString().toLowerCase()
                         .replace(".qhf", ".txt").replace(".ahf", ".txt");
                 Path outPath = Paths.get(path.getParent().toString(), fileName);
-                QhfParserChannel.saveChatToTxt(chat, outPath);
+                ChatStatistics.collectStatistics(chat);
+                //QhfParserChannel.saveChatToTxt(chat, outPath);
                 }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        ChatStatistics.printStatistics();
        // pathList.stream().map(Path::getFileName).forEach(System.out::println);
 
         // Path::getParent - directory

@@ -16,7 +16,7 @@ public class QhfParserChannel {
     public static Chat parseQhfFile(Path path) throws IOException {
         Chat chat = null;
         FileInputStream fs = null;
-        // all the thing with FileChannel as we need to go backwards for handling corrupted messages
+        // all the thing with FileChannel b/c we need to go backwards for handling corrupted messages
         // otherwise FileInputStream would be enough
         fileChannel = null;
         try {
@@ -46,7 +46,7 @@ public class QhfParserChannel {
                 String txtFileName = path.getFileName().toString()
                         .replace(".qhf", "").replace(".ahf", "")
                         .concat("_DAMAGED.txt");
-                saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
+                // saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName)); TODO uncomment it after debugging
             } else throw e;
         } finally {
             if (fileChannel != null) fileChannel.close();
@@ -57,57 +57,60 @@ public class QhfParserChannel {
     }
 
     protected static Message parseMessage() throws IOException { // TODO change to private after testing
-        Message message = new Message();
+        Message m = new Message();
         if (readInt16(0) != 1) {
             throw new IOException(String.format(Configuration.cannotReadMsg, file.getAbsolutePath()));
         }
-        message.msgBlockSize = readInt32(0);
-        message.setTOMsgFieldId((byte) readInt16(0));
-        message.idBlockSize = readInt16(0);
-        message.id = readInt32(0);
-        message.typeOfSendingDateField = readInt16(0);
-        message.sendingDateFieldSize = readInt16(0);
-        message.unixDate = readInt32(0);
-        message.typeOfFieldUnknown = readInt16(0);
-        message.typeOfFieldUnknown2 = readInt16(0);
-        message.isSent = readByte(0) > 0;
-        message.typeOfMessageField = readInt16(0);
-        message.messageLengthBlockSize = readInt16(0);
-        message.messageLength = readInt16(0);
+        m.msgBlockSize = readInt32(0);
+        m.tOMsgFieldId = readInt16(0);
+        m.idBlockSize = readInt16(0);
+        m.id = readInt32(0);
+        m.typeOfSendingDateField = readInt16(0);
+        m.sendingDateFieldSize = readInt16(0);
+        m.unixDate = readInt32(0);
+        m.typeOfFieldUnknown = readInt16(0);
+        m.typeOfFieldUnknown2 = readInt16(0);
+        m.isSent = readByte(0) > 0;
+        m.setTypeOfMsgField((byte) readInt16(0));
+        m.messageLengthBlockSize = readInt16(0);
+        m.messageLength = readInt16(0);
         // sometimes there are messages with 0 length. handle it properly
-        if (message.msgBlockSize == 27) {
-            message.setMessageByteArray(
+        if (m.msgBlockSize == 27) {
+            m.setMessageByteArray(
                     Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
-            return message;
+            return m;
         }
-        if ((message.msgBlockSize - message.messageLength) != 27) {
+        if ((m.msgBlockSize - m.messageLength) != 27) {
             // encoded message - go back and read Int32
             fileChannel.position(previousChannelPosition);
-            message.messageLength = readInt32(0);
-            if (message.messageLength == 0) {
-                message.setMessageByteArray(
+            m.messageLength = readInt32(0);
+            if (m.messageLength == 0) {
+                m.setMessageByteArray(
                         Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
-                return message;
+                return m;
             }
-            message.isEncoded = true;
+            m.isEncoded = true;
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate(message.messageLength);
+        ByteBuffer buffer = ByteBuffer.allocate(m.messageLength);
         fileChannel.read(buffer);
-        message.setMessageByteArray(buffer.array());
+        m.setMessageByteArray(buffer.array());
 
         // checking if the message is corrupted and trying to fix it
-        if (readInt16(0) != 1) {
+        int a = channelAvailableBytes();
+        if (channelAvailableBytes() > 1 && readInt16(0) != 1) {
             // corrupted
             int corruptedBytesNum = 1;
-            while (readInt16(0) != 1) {
+            a = channelAvailableBytes();
+            while (channelAvailableBytes() > 1 && readInt16(0) != 1) {
                 fileChannel.position(previousChannelPosition + 1);
                 corruptedBytesNum++;
             }
-            message.corruptedBytesNum = corruptedBytesNum;
+            m.corruptedBytesNum = corruptedBytesNum;
+            // TODO add more comprehensive checking for known fields (time for example) - after statistics
         }
-            fileChannel.position(previousChannelPosition);
-        return message;
+            if (channelAvailableBytes() > 1) fileChannel.position(previousChannelPosition);
+        return m;
     }
 
     public static void saveChatToTxt(Chat chat, Path path) throws IOException {
@@ -117,20 +120,23 @@ public class QhfParserChannel {
         try {
             StringBuilder stringBuilder = new StringBuilder();
 
-            for (Message message : chat.messages) {
+            for (Message m : chat.messages) {
                 // TODO add message that Message is corrupted
-                ZonedDateTime zonedDateTime = Instant.ofEpochSecond(message.unixDate).atZone(Configuration.zoneId);
+                ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
                 stringBuilder.append("--------------------------------------")
-                        .append(message.isSent ? ">" : "<").append("-");
+                        .append(m.isSent ? ">" : "<").append("-");
                 addCRtoStringBuilder(stringBuilder);
-                stringBuilder.append(message.isSent ? Configuration.ownNickName : chat.nickName)
+                if (m.corruptedBytesNum > 0) {
+                    stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
+                }
+                stringBuilder.append(m.isSent ? Configuration.ownNickName : chat.nickName)
                         .append(" (")
                         .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
                         .append(")");
                 addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
                 stringBuilder.setLength(0);
-                outputStream.write(message.getMessageByteArray());
+                outputStream.write(m.getMessageByteArray());
                 addCRtoStringBuilder(stringBuilder);
                 addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));

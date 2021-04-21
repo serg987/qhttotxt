@@ -46,7 +46,7 @@ public class MainEncoded {
             Message message = chat.messages.get(0);
 
             System.out.println("message.msgBlockSize=" + message.msgBlockSize);
-            System.out.println("message.tOMsgFieldId=" + message.tOMsgFieldId.name());
+            System.out.println("message.tOMsgFieldId=" + message.tOMsgFieldId);
             System.out.println("message.idBlockSize=" + message.idBlockSize);
             System.out.println("message.id=" + message.id);
             System.out.println("message.typeOfSendingDateField=" + message.typeOfSendingDateField);
@@ -119,7 +119,7 @@ public class MainEncoded {
             throw new IOException("File is corrupted! Cannot read message");
         }
         message.msgBlockSize = readInt32(fs, 0);
-        message.setTOMsgFieldId((byte) readInt16(fs, 0));
+        message.tOMsgFieldId = readInt16(fs, 0);
         message.idBlockSize = readInt16(fs, 0);
         message.id = readInt32(fs, 0);
         message.typeOfSendingDateField = readInt16(fs, 0);
@@ -128,7 +128,7 @@ public class MainEncoded {
         message.typeOfFieldUnknown = readInt16(fs, 0);
         message.typeOfFieldUnknown2 = readInt16(fs, 0);
         message.isSent = readByte(fs, 0) > 0;
-        message.typeOfMessageField = readInt16(fs, 0);
+        message.setTypeOfMsgField((byte) readInt16(fs, 0));
         message.messageLengthBlockSize = readInt16(fs, 0);
         message.messageLength = readInt16(fs, 0);
         // sometimes there are messages with 0 length. handle it properly

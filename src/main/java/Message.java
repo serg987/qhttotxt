@@ -2,7 +2,7 @@ import java.io.UnsupportedEncodingException;
 
 public class Message {
     public int msgBlockSize;
-    public typesOfMsgFieldId tOMsgFieldId;
+    public int tOMsgFieldId;
     public int idBlockSize;
     public int id;
     public int typeOfSendingDateField;
@@ -11,7 +11,7 @@ public class Message {
     public int typeOfFieldUnknown;
     public int typeOfFieldUnknown2;
     public boolean isSent;
-    public int typeOfMessageField;
+    public typesOfMsgField typeOfMessageField;
     public int messageLengthBlockSize;
     public int messageLength;
     public int corruptedBytesNum;
@@ -20,15 +20,17 @@ public class Message {
     private byte[] messageBytes;
     private byte[] decodedBytes;
 
-    public void setTOMsgFieldId(byte b) {
+    public void setTypeOfMsgField(byte b) {
         switch (b) {
-            case 02: tOMsgFieldId = typesOfMsgFieldId.MESSAGE_SENDING_DATE; break;
-            case 03: tOMsgFieldId = typesOfMsgFieldId.MESSAGE_SENDER; break;
-            case 05: tOMsgFieldId = typesOfMsgFieldId.AUTH_REQUEST; break;
-            case 06: tOMsgFieldId = typesOfMsgFieldId.FRIEND_REQUEST; break;
-            case 13: tOMsgFieldId = typesOfMsgFieldId.RECIEVED_OFFLINE; break;
-            case 14: tOMsgFieldId = typesOfMsgFieldId.AUTH_RECIEVED; break;
-            default: tOMsgFieldId = typesOfMsgFieldId.RECIEVED_ONLINE;
+            case 02: typeOfMessageField = typesOfMsgField.MESSAGE_SENDING_DATE; break;
+            case 03: typeOfMessageField = typesOfMsgField.MESSAGE_SENDER; break;
+            case 05: typeOfMessageField = typesOfMsgField.AUTH_REQUEST; break;
+            case 06: typeOfMessageField = typesOfMsgField.FRIEND_REQUEST; break;
+            case 13: typeOfMessageField = typesOfMsgField.RECIEVED_OFFLINE; break;
+            case 14: typeOfMessageField = typesOfMsgField.AUTH_RECIEVED; break;
+            case 80: typeOfMessageField = typesOfMsgField.TYPE_80; break;
+            case 81: typeOfMessageField = typesOfMsgField.TYPE_81; break;
+            default: typeOfMessageField = typesOfMsgField.RECIEVED_ONLINE;
         }
     }
 
@@ -59,13 +61,15 @@ public class Message {
         return decodedBytes;
     }
 
-    enum typesOfMsgFieldId {
+    enum typesOfMsgField {
         RECIEVED_ONLINE,
         MESSAGE_SENDING_DATE,
         MESSAGE_SENDER,
         AUTH_REQUEST,
         FRIEND_REQUEST,
         RECIEVED_OFFLINE,
-        AUTH_RECIEVED
+        AUTH_RECIEVED,
+        TYPE_80,
+        TYPE_81,
     }
 }

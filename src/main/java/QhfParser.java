@@ -44,7 +44,7 @@ public class QhfParser {
             throw new IOException(String.format(Configuration.cannotReadMsg, file.getAbsolutePath()));
         }
         message.msgBlockSize = readInt32(fs, 0);
-        message.setTOMsgFieldId((byte) readInt16(fs, 0));
+        message.tOMsgFieldId = readInt16(fs, 0);
         message.idBlockSize = readInt16(fs, 0);
         message.id = readInt32(fs, 0);
         message.typeOfSendingDateField = readInt16(fs, 0);
@@ -53,7 +53,7 @@ public class QhfParser {
         message.typeOfFieldUnknown = readInt16(fs, 0);
         message.typeOfFieldUnknown2 = readInt16(fs, 0);
         message.isSent = readByte(fs, 0) > 0;
-        message.typeOfMessageField = readInt16(fs, 0);
+        message.setTypeOfMsgField((byte) readInt16(fs, 0));
         message.messageLengthBlockSize = readInt16(fs, 0);
         message.messageLength = readInt16(fs, 0);
         // sometimes there are messages with 0 length. handle it properly
