@@ -14,7 +14,7 @@ public class Configuration {
     public static final String notQhfFile = "The file %s is not a qip history file.";
     public static final String cannotReadMsg = "File %s is corrupted! Cannot read message.";
     public static final String timePatternInTxt = "HH:mm:ss dd/MM/yyyy";
-    public static final String noFilesFound = "No files were found in provided path %s.";
+    public static final String noFilesFound = "No files were found in provided path %s";
     public static final String messageWithZeroLength = "[QhtToTxt] No message available - message length is zero.";
     public static final String tryingToSaveCorruptedFile = "Seems like the file %s is damaged. " +
             "Trying to save %d out of %d messages.";
@@ -29,6 +29,7 @@ public class Configuration {
     public static final String deletingIdenticalMessages = "Deleting identical messages...";
     public static final String sortingMessages = "Putting all messages back together...";
     public static final String savingFiles = "Saving history...";
+    public static final String moreThanOnePaths = "Sorry! Only one path (directory/file) is allowed";
 
     static {
         defaultEncoding = System.getProperty("file.encoding", "UTF-8");

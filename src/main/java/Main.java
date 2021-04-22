@@ -1,4 +1,7 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -20,7 +23,7 @@ public class Main {
 
         printCurrentConfig();
 
-        if (Configuration.combineHistories) {
+        if (Configuration.combineHistories && Files.isDirectory(Paths.get(Configuration.workingDir))) {
             Combiner.combineChats();
         } else IOHelper.convertFiles();
 
@@ -61,7 +64,11 @@ public class Main {
                     }
                 }
             } else {
-                Configuration.workingDir = argsList.get(i);
+                if (Configuration.workingDir != null) {
+                    System.out.println(Configuration.moreThanOnePaths);
+                } else {
+                    Configuration.workingDir = argsList.get(i);
+                }
             }
         }
         if (Configuration.workingDir == null || Configuration.workingDir.isEmpty()) {
