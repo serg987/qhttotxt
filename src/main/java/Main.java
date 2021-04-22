@@ -1,5 +1,4 @@
 import java.io.*;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,12 +14,12 @@ public class Main {
         List<Path> pathList = getPathList(basePath, true);
         try {
             for (Path path : pathList) {
-                Chat chat = QhfParserChannel.parseQhfFile(path);
+                Chat chat = QhfParser.parseQhfFile(path);
                 String fileName = path.getFileName().toString().toLowerCase()
                         .replace(".qhf", ".txt").replace(".ahf", ".txt");
                 Path outPath = Paths.get(path.getParent().toString(), fileName);
                 ChatStatistics.collectStatistics(chat);
-                //QhfParserChannel.saveChatToTxt(chat, outPath);
+                QhfParser.saveChatToTxt(chat, outPath);
                 }
         } catch (IOException e) {
             e.printStackTrace();
@@ -52,25 +51,6 @@ public class Main {
             e.printStackTrace();
         }
         return files;
-    }
-
-    private static void tryParse() {
-/*        String path1 = "C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\3.ahf";
-        String outpath1 = "C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\3-1.txt";
-        String path2 = "C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\2.qhf";
-        String outpath2 = "C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\2-1.txt";
-        String path3 = "C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\1.qhf";
-        String outpath3 = "C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\1-1.txt";
-        try {
-            Chat chat = QhfParser.parseQhfFile(path1);
-            QhfParser.saveChatToTxt(chat, outpath1);
-            chat = QhfParser.parseQhfFile(path2);
-            QhfParser.saveChatToTxt(chat, outpath2);
-            chat = QhfParser.parseQhfFile(path3);
-            QhfParser.saveChatToTxt(chat, outpath3);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
     }
 
     private static void showHelp() {

@@ -1,5 +1,4 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -12,7 +11,7 @@ public class MainEncoded {
         Chat chat = new Chat();
         try {
             File file = new File("E:\\!Temp\\210420\\Issues\\ICQ_295157315_355074648-1.qhf");
-            chat = QhfParserChannel.parseQhfFile(file.toPath());
+            chat = QhfParser.parseQhfFile(file.toPath());
             // fs.read(); // the header is over! // changed
             System.out.println("header=" + chat.header);
             System.out.println("historySize=" + chat.historySize);
@@ -39,7 +38,7 @@ public class MainEncoded {
             System.out.println("Messages: " + chat.messages.size());
 
 
-            QhfParserChannel.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
+            QhfParser.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
             //saveTxtFile3(chat);
             //  messages.stream().forEach(m -> System.out.println(m.message));
 
