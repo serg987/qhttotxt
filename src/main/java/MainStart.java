@@ -1,7 +1,7 @@
 public class MainStart {
 
     public static void main(String[] args) {
-        String[] args1 = {"-z", "Europe/Moscow", "E:\\!Temp\\210420\\History\\History", "-n", "John Snow", "-p", "windows-1251", "-r"};
+        String[] args1 = {"-z", "Europe/Moscow", "-n", "John Snow", "-p", "windows-1251", "-c"};
         Main.main(args1);
     }
 
