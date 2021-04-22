@@ -1,10 +1,6 @@
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Main {
 
@@ -24,20 +20,11 @@ public class Main {
 
         printCurrentConfig();
 
+        if (Configuration.combineHistories) {
+            Combiner.combineChats();
+        } else IOHelper.convertFiles();
 
-       // Combiner.combineChats(basePath);
-        //convertFiles(basePath);
-        // pathList.stream().map(Path::getFileName).forEach(System.out::println);
-
-        // Path::getParent - directory
-
-        // Path::getFileName - file name
-        //System.out.println(pathList.toString());
         System.exit(0);
-    }
-
-    private static void convertFiles(String basePath) {
-        IOHelper.saveFiles(basePath);
     }
 
     private static void parseArgsAndCreateConfig(List<String> argsList) {

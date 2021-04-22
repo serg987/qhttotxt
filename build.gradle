@@ -8,8 +8,11 @@ version '1.0-SNAPSHOT'
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Main-Class': 'Main'
+        attributes 'Implementation-Title': 'QHF to TXT converter',
+                    'Implementation-Version': '0.99a',
+                    'Implementation-Vendor': 'Sergey Kislev',
+                    'Main-Class': 'Main',
+                    'Sealed': true
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar

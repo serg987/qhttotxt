@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class Combiner {
-    public static void combineChats(String basePath) {
+    public static void combineChats() {
         HashMap<String, Chat> chatHashMap = new HashMap<>();
-        HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir(basePath);
+        HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir();
         pathChatHashMap.entrySet().forEach(entry -> {
             Chat chat = entry.getValue();
             chatHashMap.computeIfAbsent(chat.uin, ch -> chat);
@@ -17,7 +17,7 @@ public class Combiner {
         });
         deleteDuplicates(chatHashMap);
         sortMessagesByTime(chatHashMap);
-        IOHelper.saveCombinedChats(chatHashMap, basePath);
+        IOHelper.saveCombinedChats(chatHashMap);
     }
 
     private static void deleteDuplicates(HashMap<String, Chat> chatHashMap) {

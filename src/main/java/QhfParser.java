@@ -59,7 +59,7 @@ public class QhfParser {
         saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
     }
 
-    protected static Message parseMessage() throws IOException { // TODO change to private after testing
+    private static Message parseMessage() throws IOException {
         Message m = new Message();
         if (readInt16(0) != 1) {
             throw new IOException(String.format(Configuration.cannotReadMsg, file.getAbsolutePath()));
