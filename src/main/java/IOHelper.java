@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +14,7 @@ public class IOHelper {
 
     private static void saveFiles(HashMap<Path, Chat> chatHashMap) {
         System.out.println(Configuration.savingFiles);
-        chatHashMap.entrySet().forEach((entry) -> {
-            Path path = entry.getKey();
-            Chat chat = entry.getValue();
+        chatHashMap.forEach((path, chat) -> {
             String fileName = path.getFileName().toString().toLowerCase()
                     .replace(".qhf", ".txt").replace(".ahf", ".txt");
             Path outPath = Paths.get(path.getParent().toString(), fileName);
@@ -32,7 +29,7 @@ public class IOHelper {
 
     private static void printChatStatistics() { // TODO Service method; delete after debugging
         HashMap<Path, Chat> chatHashMap = getChatsFromDir();
-        chatHashMap.entrySet().stream().map(entry -> entry.getValue()).forEach(ChatStatistics::collectStatistics);
+        chatHashMap.values().stream().forEach(ChatStatistics::collectStatistics);
         ChatStatistics.printStatistics();
     }
 
@@ -54,9 +51,7 @@ public class IOHelper {
 
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
         System.out.println(Configuration.savingFiles);
-        chatHashMap.entrySet().forEach((entry) -> {
-            String uin = entry.getKey();
-            Chat chat = entry.getValue();
+        chatHashMap.forEach((uin, chat) -> {
             Path outPath = Paths.get(Configuration.workingDir, uin + "_" + Configuration.ownNickName + ".txt");
             try {
                 QhfParser.saveChatToTxt(chat, outPath);
@@ -70,10 +65,10 @@ public class IOHelper {
 
     private static List<Path> getPathList() {
         List<Path> files = new ArrayList<>();
-        System.out.println(Configuration.analizingFolders);
+        System.out.println(Configuration.analyzingFolders);
         Path filePath = Paths.get(Configuration.workingDir);
         if (!Files.exists(filePath)) {
-            System.out.println(String.format(Configuration.noPathFound, Configuration.workingDir));
+            System.out.printf((Configuration.noPathFound) + "%n", Configuration.workingDir);
         } else if (Files.isRegularFile(filePath)) {
             files.add(filePath);
         } else {
@@ -92,9 +87,9 @@ public class IOHelper {
             }
         }
         if (files.isEmpty()) {
-            System.out.println(String.format(Configuration.noFilesFound, Configuration.workingDir));
+            System.out.printf((Configuration.noFilesFound) + "%n", Configuration.workingDir);
         } else {
-            System.out.println(String.format(Configuration.foundNfiles, files.size()));
+            System.out.printf((Configuration.foundNFiles) + "%n", files.size());
         }
         return files;
     }

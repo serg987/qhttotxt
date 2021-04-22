@@ -19,9 +19,9 @@ public class Main {
 
         parseArgsAndCreateConfig(argsList);
 
-        System.out.println(String.format(Configuration.configMsg, Configuration.workingDir,
+        System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
                 Configuration.recursiveSearch, Configuration.combineHistories,
-                Configuration.ownNickName, Configuration.zoneId, Configuration.defaultEncoding));
+                Configuration.ownNickName, Configuration.zoneId, Configuration.defaultEncoding);
 
         if (Configuration.combineHistories && Files.isDirectory(Paths.get(Configuration.workingDir))) {
             Combiner.combineChats();
@@ -33,7 +33,7 @@ public class Main {
     private static void parseArgsAndCreateConfig(List<String> argsList) {
         for (int i = 0; i < argsList.size(); i++) {
             if (argsList.get(i).startsWith("-") && argsList.get(i).length() > 2) {
-                System.out.println(String.format(Configuration.onlyOneParam, argsList.get(i)));
+                System.out.printf((Configuration.onlyOneParam) + "%n", argsList.get(i));
                 System.exit(1);
             }
 

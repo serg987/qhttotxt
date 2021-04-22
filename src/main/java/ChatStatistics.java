@@ -1,4 +1,3 @@
-import java.nio.charset.Charset;
 import java.util.HashMap;
 
 public class ChatStatistics {
@@ -10,16 +9,16 @@ public class ChatStatistics {
     private static int avgMessageLength = 0;
     private static int encodedMessages = 0;
     private static int corruptedMessages = 0;
-    public static HashMap<String, Integer> tOMsgFieldIdMap = new HashMap<>();
-    public static HashMap<Integer, Integer> tOMsgFieldIdIntMap = new HashMap<>();
-    public static HashMap<Integer, Integer> idBlockSizeMap = new HashMap<>();
-    public static HashMap<Integer, Integer> typeOfSendingDateFieldMap = new HashMap<>();
-    public static HashMap<Integer, Integer> sendingDateFieldSizeMap = new HashMap<>();
-    public static HashMap<Integer, Integer> typeOfFieldUnknownMap = new HashMap<>();
-    public static HashMap<Integer, Integer> typeOfFieldUnknown2Map = new HashMap<>();
+    public static final HashMap<String, Integer> tOMsgFieldIdMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> tOMsgFieldIdIntMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> idBlockSizeMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> typeOfSendingDateFieldMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> sendingDateFieldSizeMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> typeOfFieldUnknownMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> typeOfFieldUnknown2Map = new HashMap<>();
     public static int numberOfSentMsgs = 0;
-    public static HashMap<Message.typesOfMsgField, Integer> typeOfMessageFieldMap = new HashMap<>();
-    public static HashMap<Integer, Integer> messageLengthBlockSizeMap = new HashMap<>();
+    public static final HashMap<Message.typesOfMsgField, Integer> typeOfMessageFieldMap = new HashMap<>();
+    public static final HashMap<Integer, Integer> messageLengthBlockSizeMap = new HashMap<>();
 
 
     public static void collectStatistics(Chat chat) {
@@ -60,27 +59,27 @@ public class ChatStatistics {
         System.out.println("corruptedMessages: " + corruptedMessages);
         System.out.println("numberOfSentMsgs: " + numberOfSentMsgs);
         System.out.println("**** tOMsgFieldIdIntMap: ");
-        tOMsgFieldIdIntMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        tOMsgFieldIdIntMap.forEach((key, value) -> System.out.println(key + ": " + value));
         System.out.println("**** tOMsgFieldIdMap: ");
-        tOMsgFieldIdMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        tOMsgFieldIdMap.forEach((key, value) -> System.out.println(key + ": " + value));
         System.out.println("**** idBlockSizeMap: ");
-        idBlockSizeMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        idBlockSizeMap.forEach((key, value) -> System.out.println(key + ": " + value));
         System.out.println("**** typeOfSendingDateFieldMap: ");
-        typeOfSendingDateFieldMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        typeOfSendingDateFieldMap.forEach((key, value) -> System.out.println(key + ": " + value));
         System.out.println("**** sendingDateFieldSizeMap: ");
-        sendingDateFieldSizeMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        sendingDateFieldSizeMap.forEach((key4, value4) -> System.out.println(key4 + ": " + value4));
         System.out.println("**** typeOfFieldUnknownMap: ");
-        typeOfFieldUnknownMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        typeOfFieldUnknownMap.forEach((key3, value3) -> System.out.println(key3 + ": " + value3));
         System.out.println("**** typeOfFieldUnknown2Map: ");
-        typeOfFieldUnknown2Map.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        typeOfFieldUnknown2Map.forEach((key2, value2) -> System.out.println(key2 + ": " + value2));
         System.out.println("**** messageLengthBlockSizeMap: ");
-        messageLengthBlockSizeMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        messageLengthBlockSizeMap.forEach((key1, value1) -> System.out.println(key1 + ": " + value1));
         System.out.println("**** typeOfMessageFieldMap: ");
-        typeOfMessageFieldMap.entrySet().forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue()));
+        typeOfMessageFieldMap.forEach((key, value) -> System.out.println(key + ": " + value));
     }
 
     private static <T> void addToHasMap(HashMap<T, Integer> map, T toAdd) {
-        map.computeIfAbsent(toAdd, k-> 1);
+        map.putIfAbsent(toAdd, 1);
         map.computeIfPresent(toAdd, (k, v) -> v + 1);
     }
 }

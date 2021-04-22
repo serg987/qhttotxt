@@ -1,5 +1,6 @@
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -8,9 +9,8 @@ public class Combiner {
         HashMap<String, Chat> chatHashMap = new HashMap<>();
         HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir();
         System.out.println(Configuration.combiningFiles);
-        pathChatHashMap.entrySet().forEach(entry -> {
-            Chat chat = entry.getValue();
-            chatHashMap.computeIfAbsent(chat.uin, ch -> chat);
+        pathChatHashMap.forEach((key, chat) -> {
+            chatHashMap.putIfAbsent(chat.uin, chat);
             chatHashMap.computeIfPresent(chat.uin, (uinInMap, ch) -> {
                 ch.messages.addAll(chat.messages);
                 return ch;
@@ -31,7 +31,7 @@ public class Combiner {
             while (i < chat.messages.size()) {
                 boolean duplicateFound = false;
                 Message message = chat.messages.get(i);
-                long startUnixDate = message.unixDate * 1000l;
+                long startUnixDate = message.unixDate * 1000L;
                 while (messageHashMap.containsKey(startUnixDate) && !duplicateFound) {
                     Message messageFromSet = messageHashMap.get(startUnixDate);
                     if (Arrays.equals(messageFromSet.getMessageByteArray(), message.getMessageByteArray())) {
@@ -55,7 +55,7 @@ public class Combiner {
         for (String uin : chatHashMap.keySet()) {
             Chat chat = chatHashMap.get(uin);
             chat.messages = chat.messages.stream()
-                    .sorted((a, b) -> (a.unixDate - b.unixDate)).collect(Collectors.toList());
+                    .sorted(Comparator.comparingInt(a -> a.unixDate)).collect(Collectors.toList());
         }
         System.out.println(Configuration.done);
     }

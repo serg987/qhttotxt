@@ -23,16 +23,16 @@ public class QhfParser {
             file = new File(path.toUri());
             fs = new FileInputStream(file);
             fileChannel = fs.getChannel();
-            chat.header = readChars(0, 3);
+            chat.header = readChars(3);
             if (!chat.header.equals("QHF"))
                 throw new IOException(String.format(Configuration.notQhfFile, file.getName()));
             chat.historySize = readInt32(1);
             chat.numberOfMsgs = readInt32(26);
             chat.numberOfMsgs2 = readInt32(0);
             chat.uinLength = readInt16(2);
-            chat.uin = readChars(0, chat.uinLength);
+            chat.uin = readChars(chat.uinLength);
             chat.nickNameLength = readInt16(0);
-            chat.nickName = readChars(0, chat.nickNameLength);
+            chat.nickName = readChars(chat.nickNameLength);
 
             while (fs.available() > 6) {
                 chat.messages.add(parseMessage());
@@ -50,9 +50,9 @@ public class QhfParser {
     }
 
     private static void saveCorruptedChat(Path path, Chat chat) throws IOException {
-        System.out.println(String.format(Configuration.tryingToSaveCorruptedFile,
+        System.out.printf((Configuration.tryingToSaveCorruptedFile) + "%n",
                 path.getFileName().toAbsolutePath().toString(),
-                chat.messages.size(), chat.numberOfMsgs));
+                chat.messages.size(), chat.numberOfMsgs);
         String txtFileName = path.getFileName().toString()
                 .replace(".qhf", "").replace(".ahf", "")
                 .concat("_DAMAGED.txt");
@@ -123,7 +123,7 @@ public class QhfParser {
         m.unixDate = readInt32(0);
         m.typeOfFieldUnknown = readInt16(0);
         m.typeOfFieldUnknown2 = readInt16(0);
-        m.isSent = readByte(0) > 0;
+        m.isSent = readByte() > 0;
         m.setTypeOfMsgField((byte) readInt16(0));
         m.messageLengthBlockSize = readInt16(0);
         m.messageLength = readInt16(0);
@@ -131,9 +131,8 @@ public class QhfParser {
 
     public static void saveChatToTxt(Chat chat, Path path) throws IOException {
         File fileToSave = new File(path.toUri());
-        FileOutputStream outputStream = new FileOutputStream(fileToSave);
 
-        try {
+        try (FileOutputStream outputStream = new FileOutputStream(fileToSave)) {
             StringBuilder stringBuilder = new StringBuilder();
 
             for (Message m : chat.messages) {
@@ -163,8 +162,6 @@ public class QhfParser {
         } catch (UnsupportedEncodingException e) {
             System.out.println(Configuration.getNoCodepageFound());
             e.printStackTrace();
-        } finally {
-            outputStream.close();
         }
     }
 
@@ -180,10 +177,9 @@ public class QhfParser {
         return buffer;
     }
 
-    private static byte readByte(int offset) throws IOException {
+    private static byte readByte() throws IOException {
         storePreviousChannelPosition();
-        fileChannel.position(previousChannelPosition + offset);
-        if (channelAvailableBytes() > offset + 1) {
+        if (channelAvailableBytes() > 1) {
             return allocateByteBufferReadAndResetPosition(1).get();
         }
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
@@ -207,9 +203,8 @@ public class QhfParser {
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
     }
 
-    private static String readChars(int offset, int length) throws IOException {
+    private static String readChars(int length) throws IOException {
         storePreviousChannelPosition();
-        fileChannel.position(previousChannelPosition + offset);
         if (channelAvailableBytes() >= length) {
             ByteBuffer buffer = ByteBuffer.allocate(length);
             fileChannel.read(buffer);

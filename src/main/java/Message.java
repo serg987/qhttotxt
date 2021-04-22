@@ -1,5 +1,3 @@
-import java.io.UnsupportedEncodingException;
-
 public class Message {
     public int msgBlockSize;
     public int tOMsgFieldId;
@@ -15,17 +13,16 @@ public class Message {
     public int messageLengthBlockSize;
     public int messageLength;
     public int corruptedBytesNum;
-    //private String message;
     public boolean isEncoded = false;
     private byte[] messageBytes;
     private byte[] decodedBytes;
 
     public void setTypeOfMsgField(byte b) {
         switch (b) {
-            case 02: typeOfMessageField = typesOfMsgField.MESSAGE_SENDING_DATE; break;
-            case 03: typeOfMessageField = typesOfMsgField.MESSAGE_SENDER; break;
-            case 05: typeOfMessageField = typesOfMsgField.AUTH_REQUEST; break;
-            case 06: typeOfMessageField = typesOfMsgField.FRIEND_REQUEST; break;
+            case 2: typeOfMessageField = typesOfMsgField.MESSAGE_SENDING_DATE; break;
+            case 3: typeOfMessageField = typesOfMsgField.MESSAGE_SENDER; break;
+            case 5: typeOfMessageField = typesOfMsgField.AUTH_REQUEST; break;
+            case 6: typeOfMessageField = typesOfMsgField.FRIEND_REQUEST; break;
             case 13: typeOfMessageField = typesOfMsgField.RECIEVED_OFFLINE; break;
             case 14: typeOfMessageField = typesOfMsgField.AUTH_RECIEVED; break;
             case 80: typeOfMessageField = typesOfMsgField.TYPE_80; break;
@@ -41,15 +38,6 @@ public class Message {
     public byte[] getMessageByteArray() {
         if (isEncoded) return getDecodedMessageBytes();
         return messageBytes;
-    }
-
-    public String getMessage() {
-        try {
-            return new String(getMessageByteArray(), Configuration.defaultEncoding);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return Configuration.getNoCodepageFound();
     }
 
     private byte[] getDecodedMessageBytes() {
