@@ -21,6 +21,7 @@ public class Configuration {
             "Trying to save %d out of %d messages.";
     public static final String messageIsCorrupted = "[qhtToTxt] Probably this message is corrupted. " +
             "There are %d bytes lost.";
+    public static final String noPathFound = "The file or path %s does not exist.";
 
     static {
         defaultEncoding = System.getProperty("file.encoding", "UTF-8");
