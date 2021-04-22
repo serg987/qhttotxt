@@ -7,6 +7,7 @@ public class Combiner {
     public static void combineChats() {
         HashMap<String, Chat> chatHashMap = new HashMap<>();
         HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir();
+        System.out.println(Configuration.combiningFiles);
         pathChatHashMap.entrySet().forEach(entry -> {
             Chat chat = entry.getValue();
             chatHashMap.computeIfAbsent(chat.uin, ch -> chat);
@@ -15,6 +16,7 @@ public class Combiner {
                 return ch;
             });
         });
+        System.out.println(Configuration.done);
         deleteDuplicates(chatHashMap);
         sortMessagesByTime(chatHashMap);
         IOHelper.saveCombinedChats(chatHashMap);
@@ -22,6 +24,7 @@ public class Combiner {
 
     private static void deleteDuplicates(HashMap<String, Chat> chatHashMap) {
         HashMap<Long, Message> messageHashMap = new HashMap<>();
+        System.out.println(Configuration.deletingIdenticalMessages);
         for (String uin : chatHashMap.keySet()) {
             Chat chat = chatHashMap.get(uin);
             int i = 0;
@@ -44,13 +47,16 @@ public class Combiner {
                 i++;
             }
         }
+        System.out.println(Configuration.done);
     }
 
     private static void sortMessagesByTime(HashMap<String, Chat> chatHashMap) {
+        System.out.println(Configuration.sortingMessages);
         for (String uin : chatHashMap.keySet()) {
             Chat chat = chatHashMap.get(uin);
             chat.messages = chat.messages.stream()
                     .sorted((a, b) -> (a.unixDate - b.unixDate)).collect(Collectors.toList());
         }
+        System.out.println(Configuration.done);
     }
 }

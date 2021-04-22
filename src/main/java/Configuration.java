@@ -21,6 +21,14 @@ public class Configuration {
     public static final String messageIsCorrupted = "[QhtToTxt] Probably this message is corrupted. " +
             "There are %d bytes lost.";
     public static final String noPathFound = "The file or path %s does not exist.";
+    public static final String analizingFolders = "Seeking for .qhf or .ahf files...";
+    public static final String startToReadFiles = "Reading files...";
+    public static final String done = "Done.";
+    public static final String foundNfiles = "Found %d files.";
+    public static final String combiningFiles = "Combining files...";
+    public static final String deletingIdenticalMessages = "Deleting identical messages...";
+    public static final String sortingMessages = "Putting all messages back together...";
+    public static final String savingFiles = "Saving history...";
 
     static {
         defaultEncoding = System.getProperty("file.encoding", "UTF-8");

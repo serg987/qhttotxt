@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ public class IOHelper {
     }
 
     private static void saveFiles(HashMap<Path, Chat> chatHashMap) {
+        System.out.println(Configuration.savingFiles);
         chatHashMap.entrySet().forEach((entry) -> {
             Path path = entry.getKey();
             Chat chat = entry.getValue();
@@ -25,7 +27,7 @@ public class IOHelper {
                 e.printStackTrace();
             }
         });
-
+        System.out.println(Configuration.done);
     }
 
     private static void printChatStatistics() { // TODO Service method; delete after debugging
@@ -37,6 +39,7 @@ public class IOHelper {
     public static HashMap<Path, Chat> getChatsFromDir() {
         List<Path> pathList = getPathList();
         HashMap<Path, Chat> chatHashMap = new HashMap<>();
+        System.out.println(Configuration.startToReadFiles);
         try {
             for (Path path : pathList) {
                 Chat chat = QhfParser.parseQhfFile(path);
@@ -45,10 +48,12 @@ public class IOHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(Configuration.done);
         return chatHashMap;
     }
 
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
+        System.out.println(Configuration.savingFiles);
         chatHashMap.entrySet().forEach((entry) -> {
             String uin = entry.getKey();
             Chat chat = entry.getValue();
@@ -59,11 +64,13 @@ public class IOHelper {
                 e.printStackTrace();
             }
         });
+        System.out.println(Configuration.done);
     }
 
 
     private static List<Path> getPathList() {
         List<Path> files = new ArrayList<>();
+        System.out.println(Configuration.analizingFolders);
         Path filePath = Paths.get(Configuration.workingDir);
         if (!Files.exists(filePath)) {
             System.out.println(String.format(Configuration.noPathFound, Configuration.workingDir));
@@ -80,11 +87,14 @@ public class IOHelper {
                                 }
                         )
                         .collect(Collectors.toList());
-
             } catch (IOException e) {
-                System.out.println(String.format(Configuration.noFilesFound, Configuration.workingDir));
                 e.printStackTrace();
             }
+        }
+        if (files.isEmpty()) {
+            System.out.println(String.format(Configuration.noFilesFound, Configuration.workingDir));
+        } else {
+            System.out.println(String.format(Configuration.foundNfiles, files.size()));
         }
         return files;
     }
