@@ -2,8 +2,18 @@ plugins {
     id 'java'
 }
 
-group 'org.example'
+group 'org.serg987'
 version '1.0-SNAPSHOT'
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Main-Class': 'Main'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
 
 repositories {
     mavenCentral()
