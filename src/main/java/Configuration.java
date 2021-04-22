@@ -19,7 +19,7 @@ public class Configuration {
     public static final String messageWithZeroLength = "[qhtToTxt] No message available - message length is zero.";
     public static final String tryingToSaveCorruptedFile = "Seems like the file %s is damaged. " +
             "Trying to save %d out of %d messages.";
-    public static final String messageIsCorrupted = "[qhtToTxt] Probably the message was corrupted. " +
+    public static final String messageIsCorrupted = "[qhtToTxt] Probably this message is corrupted. " +
             "There are %d bytes lost.";
 
     static {

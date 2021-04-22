@@ -39,7 +39,7 @@ public class MainEncoded {
             System.out.println("Messages: " + chat.messages.size());
 
 
-            QhfParser.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
+            QhfParserChannel.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
             //saveTxtFile3(chat);
             //  messages.stream().forEach(m -> System.out.println(m.message));
 

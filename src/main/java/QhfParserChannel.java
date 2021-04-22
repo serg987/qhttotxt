@@ -1,7 +1,6 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -40,13 +39,7 @@ public class QhfParserChannel {
             }
         } catch (IOException e) {
             if (chat.messages.size() > 0) {
-                System.out.println(String.format(Configuration.tryingToSaveCorruptedFile,
-                        path.getFileName().toAbsolutePath().toString(),
-                        chat.messages.size(), chat.numberOfMsgs));
-                String txtFileName = path.getFileName().toString()
-                        .replace(".qhf", "").replace(".ahf", "")
-                        .concat("_DAMAGED.txt");
-                // saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName)); TODO uncomment it after debugging
+                saveCorruptedChat(path, chat);
             } else throw e;
         } finally {
             if (fileChannel != null) fileChannel.close();
@@ -56,24 +49,22 @@ public class QhfParserChannel {
         return chat;
     }
 
+    private static void saveCorruptedChat(Path path, Chat chat) throws IOException {
+        System.out.println(String.format(Configuration.tryingToSaveCorruptedFile,
+                path.getFileName().toAbsolutePath().toString(),
+                chat.messages.size(), chat.numberOfMsgs));
+        String txtFileName = path.getFileName().toString()
+                .replace(".qhf", "").replace(".ahf", "")
+                .concat("_DAMAGED.txt");
+        saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
+    }
+
     protected static Message parseMessage() throws IOException { // TODO change to private after testing
         Message m = new Message();
         if (readInt16(0) != 1) {
             throw new IOException(String.format(Configuration.cannotReadMsg, file.getAbsolutePath()));
         }
-        m.msgBlockSize = readInt32(0);
-        m.tOMsgFieldId = readInt16(0);
-        m.idBlockSize = readInt16(0);
-        m.id = readInt32(0);
-        m.typeOfSendingDateField = readInt16(0);
-        m.sendingDateFieldSize = readInt16(0);
-        m.unixDate = readInt32(0);
-        m.typeOfFieldUnknown = readInt16(0);
-        m.typeOfFieldUnknown2 = readInt16(0);
-        m.isSent = readByte(0) > 0;
-        m.setTypeOfMsgField((byte) readInt16(0));
-        m.messageLengthBlockSize = readInt16(0);
-        m.messageLength = readInt16(0);
+        fillMessageData(m);
         // sometimes there are messages with 0 length. handle it properly
         if (m.msgBlockSize == 27) {
             m.setMessageByteArray(
@@ -97,20 +88,45 @@ public class QhfParserChannel {
         m.setMessageByteArray(buffer.array());
 
         // checking if the message is corrupted and trying to fix it
-        int a = channelAvailableBytes();
         if (channelAvailableBytes() > 1 && readInt16(0) != 1) {
             // corrupted
-            int corruptedBytesNum = 1;
-            a = channelAvailableBytes();
-            while (channelAvailableBytes() > 1 && readInt16(0) != 1) {
+            int corruptedBytesNum = 0;
+            boolean properHeaderFound = false;
+            // if less than 34 bytes left, there is no sense to check - the header is corrupted
+            while (channelAvailableBytes() > 34 && !properHeaderFound) {
                 fileChannel.position(previousChannelPosition + 1);
                 corruptedBytesNum++;
+                if (readInt16(0) == 1) {
+                    fileChannel.position(previousChannelPosition);
+                    int typeOfId = readInt16(6);
+                    fileChannel.position(previousChannelPosition);
+                    int idBlockSize = readInt16(8);
+                    fileChannel.position(previousChannelPosition);
+                    int sendingDateFieldSize = readInt16(16);
+                    fileChannel.position(previousChannelPosition);
+                    properHeaderFound = (typeOfId == 1 && idBlockSize == 4 && sendingDateFieldSize == 4);
+                }
             }
             m.corruptedBytesNum = corruptedBytesNum;
-            // TODO add more comprehensive checking for known fields (time for example) - after statistics
         }
             if (channelAvailableBytes() > 1) fileChannel.position(previousChannelPosition);
         return m;
+    }
+
+    private static void fillMessageData(Message m) throws IOException {
+        m.msgBlockSize = readInt32(0);
+        m.tOMsgFieldId = readInt16(0);
+        m.idBlockSize = readInt16(0);
+        m.id = readInt32(0);
+        m.typeOfSendingDateField = readInt16(0);
+        m.sendingDateFieldSize = readInt16(0);
+        m.unixDate = readInt32(0);
+        m.typeOfFieldUnknown = readInt16(0);
+        m.typeOfFieldUnknown2 = readInt16(0);
+        m.isSent = readByte(0) > 0;
+        m.setTypeOfMsgField((byte) readInt16(0));
+        m.messageLengthBlockSize = readInt16(0);
+        m.messageLength = readInt16(0);
     }
 
     public static void saveChatToTxt(Chat chat, Path path) throws IOException {
@@ -121,13 +137,13 @@ public class QhfParserChannel {
             StringBuilder stringBuilder = new StringBuilder();
 
             for (Message m : chat.messages) {
-                // TODO add message that Message is corrupted
                 ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
                 stringBuilder.append("--------------------------------------")
                         .append(m.isSent ? ">" : "<").append("-");
                 addCRtoStringBuilder(stringBuilder);
                 if (m.corruptedBytesNum > 0) {
                     stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
+                    addCRtoStringBuilder(stringBuilder);
                 }
                 stringBuilder.append(m.isSent ? Configuration.ownNickName : chat.nickName)
                         .append(" (")
@@ -167,7 +183,6 @@ public class QhfParserChannel {
     private static byte readByte(int offset) throws IOException {
         storePreviousChannelPosition();
         fileChannel.position(previousChannelPosition + offset);
-        //getOffsetInFileStream(fs, offset);
         if (channelAvailableBytes() > offset + 1) {
             return allocateByteBufferReadAndResetPosition(1).get();
         }
@@ -177,18 +192,7 @@ public class QhfParserChannel {
     private static int readInt32(int offset) throws IOException {
         storePreviousChannelPosition();
         fileChannel.position(previousChannelPosition + offset);
-        //getOffsetInFileStream(fs, offset);
-        int out;
         if (channelAvailableBytes() > 3) {
-
-/*            byte[] b = buffer.array();
-            out = b[0] & 0xFF;
-            out = out << 8;
-            out += b[1] & 0xFF;
-            out = out << 8;
-            out += b[2] & 0xFF;
-            out = out << 8;
-            out += b[3] & 0xFF;*/
             return allocateByteBufferReadAndResetPosition(4).getInt();
         }
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
@@ -197,14 +201,7 @@ public class QhfParserChannel {
     private static int readInt16(int offset) throws IOException {
         storePreviousChannelPosition();
         fileChannel.position(previousChannelPosition + offset);
-        //getOffsetInFileStream(fs, offset);
-        int out;
         if (channelAvailableBytes() > 1) {
-
-            //byte[] b = buffer.array();
-            //out = b[0] & 0xFF;
-            //out = out << 8;
-            //out += b[1] & 0xFF;
             return allocateByteBufferReadAndResetPosition(2).getShort();
         }
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
@@ -213,7 +210,6 @@ public class QhfParserChannel {
     private static String readChars(int offset, int length) throws IOException {
         storePreviousChannelPosition();
         fileChannel.position(previousChannelPosition + offset);
-        //getOffsetInFileStream(fs, offset);
         if (channelAvailableBytes() >= length) {
             ByteBuffer buffer = ByteBuffer.allocate(length);
             fileChannel.read(buffer);
@@ -224,21 +220,6 @@ public class QhfParserChannel {
 
     private static void storePreviousChannelPosition() throws IOException {
         previousChannelPosition = fileChannel.position();
-    }
-
-    private static void getOffsetInFileStream(FileInputStream fs, int offset) throws IOException {
-        if (offset == 0) return;
-        if (channelAvailableBytes() >= offset) {
-            byte[] b = new byte[offset];
-            fs.read(b);
-            return;
-        }
-        throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
-    }
-
-    private static void checkChannel(FileInputStream fs) {
-        FileChannel channel = fs.getChannel();
-       /// channel.
     }
 
     private static int channelAvailableBytes() throws IOException {
