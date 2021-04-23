@@ -30,7 +30,8 @@ public class Configuration {
     public static final String sortingMessages = "Putting all messages back together...";
     public static final String savingFiles = "Saving history...";
     public static final String moreThanOnePaths = "Sorry! Only one path (directory/file) is allowed";
-    public static final String welcomeMessage = "QHF (AHF) to TXT converter. Developed by Sergey Kiselev in 2021. https://gi"; // TODO add repo
+    public static final String welcomeMessage = "QHF (AHF) to TXT converter. Developed by Sergey Kiselev in 2021. " +
+            "https://github.com/serg987/qhttotxt";
     public static final String forHelp = "For quick help run with -h";
     public static final String onlyOneParam = "Error! Only single parameter allowed: %s";
     public static final String configMsg = "Current configuration:\n" +

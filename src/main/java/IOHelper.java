@@ -32,7 +32,7 @@ public class IOHelper {
 
     private static void printChatStatistics() { // TODO Service method; delete after debugging
         HashMap<Path, Chat> chatHashMap = getChatsFromDir();
-        chatHashMap.values().stream().forEach(ChatStatistics::collectStatistics);
+        chatHashMap.values().forEach(ChatStatistics::collectStatistics);
         ChatStatistics.printStatistics();
     }
 
