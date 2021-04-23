@@ -9,7 +9,7 @@ version '0.9a'
 task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'QHF to TXT converter',
-                    'Implementation-Version': '0.99a',
+                    'Implementation-Version': '0.9a',
                     'Implementation-Vendor': 'Sergey Kislev',
                     'Main-Class': 'Main',
                     'Sealed': true

@@ -30,12 +30,6 @@ public class IOHelper {
         System.out.println(Configuration.done);
     }
 
-    private static void printChatStatistics() { // TODO Service method; delete after debugging
-        HashMap<Path, Chat> chatHashMap = getChatsFromDir();
-        chatHashMap.values().forEach(ChatStatistics::collectStatistics);
-        ChatStatistics.printStatistics();
-    }
-
     public static HashMap<Path, Chat> getChatsFromDir() {
         List<Path> pathList = getPathList();
         HashMap<Path, Chat> chatHashMap = new HashMap<>();
