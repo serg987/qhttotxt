@@ -106,6 +106,7 @@ Position | HEX | Size | Description
 
 ### Messages ###
 Messages are right after the header. They are going one by one. The position is counted after the heading.
+
 _Comment of serg987: analysis of ~ 50K messages shows that the values of most of the fields are always the 
 same (see the "Value" column)_ 
 
@@ -126,6 +127,7 @@ Position | HEX | Size | Description | _Value_
 29 | 0x1D | Int16 | Size of the field of message length value. _(1)_ | 4
 31 | 0x1F | Int16/32 _(1)_ | Message length in bytes.
 35 | 0x23 | Byte(N) | Message text, _(non)_ encrypted. _(2)_
+
 _Comment of serg987:_
 
 _(1) - For QIP PDA files with non-encrypted message text Int16 (2 bytes) are used for length, but the value of the field 
@@ -135,6 +137,7 @@ _(2) - For QIP PDA files message text is not encrypted._
 
 ### Message encryption ###
 _Comment of serg987: not applicable for QIP PDA_
+
 The text of the messages is stored in UTF8 encoding, as mentioned earlier. However, before converting the bytes to 
 text, they are needed to be decrypted. The decrypting of the bytes of the message text is performed by the following 
 principle:
