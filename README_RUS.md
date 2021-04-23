@@ -82,9 +82,10 @@ https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 ## Описание формата QHF (AHF) ##
 
-Оригинальное описание формата взято из https://github.com/MolinRE/. Без описания не было бы этой программы. Огромная 
-благодарность автору и владельцу Константину Комарову за разрешение использования также и в этом проекте.
-Также описание есть по ссылке https://alexey-m.ru/articles/qip-infium-prodolzhenie-istorii 
+Оригинальное описание формата взято из https://github.com/MolinRE/QIParser. Без описания не было бы этой программы. 
+Огромная благодарность автору и владельцу Константину Комарову (https://github.com/MolinRE) за разрешение 
+использования также и в этом проекте. Также описание есть по ссылке 
+https://alexey-m.ru/articles/qip-infium-prodolzhenie-istorii 
 
 ## Структура файла ##
 

@@ -32,6 +32,8 @@ public class Main {
 
     private static void parseArgsAndCreateConfig(List<String> argsList) {
         for (int i = 0; i < argsList.size(); i++) {
+            if (argsList.get(i).isEmpty()) continue;
+
             if (argsList.get(i).startsWith("-") && argsList.get(i).length() > 2) {
                 System.out.printf((Configuration.onlyOneParam) + "%n", argsList.get(i));
                 System.exit(1);

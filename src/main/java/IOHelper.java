@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +18,8 @@ public class IOHelper {
         System.out.println(Configuration.savingFiles);
         chatHashMap.forEach((path, chat) -> {
             String fileName = path.getFileName().toString().toLowerCase()
-                    .replace(".qhf", ".txt").replace(".ahf", ".txt");
+                    .replace(".qhf", "").replace(".ahf", "")
+                    .concat(getNickNameForFileName(chat)).concat(".txt");
             Path outPath = Paths.get(path.getParent().toString(), fileName);
             try {
                 QhfParser.saveChatToTxt(chat, outPath);
@@ -52,7 +55,8 @@ public class IOHelper {
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
         System.out.println(Configuration.savingFiles);
         chatHashMap.forEach((uin, chat) -> {
-            Path outPath = Paths.get(Configuration.workingDir, uin + "_" + Configuration.ownNickName + ".txt");
+            Path outPath = Paths.get(Configuration.workingDir, uin
+                    + getNickNameForFileName(chat) + "_" + Configuration.ownNickName + ".txt");
             try {
                 QhfParser.saveChatToTxt(chat, outPath);
             } catch (IOException e) {
@@ -92,5 +96,17 @@ public class IOHelper {
             System.out.printf((Configuration.foundNFiles) + "%n", files.size());
         }
         return files;
+    }
+
+    private static String getNickNameForFileName(Chat chat) {
+        String nickName = "";
+        try {
+            nickName = (chat.uin.equals(chat.nickName)) ? "" : "_" +
+                    new String(chat.nickName.getBytes(Configuration.defaultEncoding), StandardCharsets.UTF_8)
+                    .replaceAll("[\\\\/:*?\"<>|]", "");
+        } catch (UnsupportedEncodingException e) {
+           e.printStackTrace();
+        }
+        return nickName;
     }
 }

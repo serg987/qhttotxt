@@ -12,6 +12,7 @@ public class Combiner {
         pathChatHashMap.forEach((key, chat) -> {
             chatHashMap.putIfAbsent(chat.uin, chat);
             chatHashMap.computeIfPresent(chat.uin, (uinInMap, ch) -> {
+                if (ch.nickName.equals(ch.uin)) ch.nickName = chat.nickName;
                 ch.messages.addAll(chat.messages);
                 return ch;
             });
