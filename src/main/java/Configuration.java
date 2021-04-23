@@ -41,12 +41,13 @@ public class Configuration {
             "{path} - set the path (current path by default, only one path allowed)\n" +
             "-c - combine histories for one uin from different files (false by default); " +
             "output files will be placed in the working directory\n" +
-            "-n - set your nickname for displaying in histories ('You' by default)\n" +
-            "-p - explicitly set the codepage of qhf files (system codepage by default); " +
+            "-h - this help\n" +
+            "-n {nickname} - set your nickname for displaying in histories ('You' by default)\n" +
+            "-p {codepage} - explicitly set the codepage of qhf files (system codepage by default); " +
             "for Windows and Russian it is usually \"windows-1251\", " +
             "see other codepages https://en.wikipedia.org/wiki/Code_page\n" +
             "-r - turn on recursive search for files in subfolders (false by default)\n" +
-            "-z - explicitly set the timezone for histories " +
+            "-z {timezone} - explicitly set the timezone for histories " +
             "(current timezone by default - if you now in a different timezone than histories were made, " +
             "you will have the wrong time in output files); " +
             "see timezones https://en.wikipedia.org/wiki/List_of_tz_database_time_zones\n" +
