@@ -21,7 +21,7 @@ public class Main {
 
         System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
                 Configuration.recursiveSearch, Configuration.combineHistories,
-                Configuration.ownNickName, Configuration.zoneId, Configuration.defaultEncoding);
+                Configuration.ownNickName, Configuration.zoneId, Configuration.defaultCodepage);
 
         if (Configuration.combineHistories && Files.isDirectory(Paths.get(Configuration.workingDir))) {
             Combiner.combineChats();
@@ -56,7 +56,7 @@ public class Main {
                             i++;
                             break;
                         case 'p':
-                            Configuration.defaultEncoding = argsList.get(i + 1);
+                            Configuration.defaultCodepage = argsList.get(i + 1);
                             i++;
                             break;
                         case 'n':

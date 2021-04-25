@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ParseContactLists {
+public class ContactListsParser {
 
     private static ContactList contactList = new ContactList();
 
@@ -24,7 +24,7 @@ public class ParseContactLists {
 
     private static void parseClFiles() {
         List<Path> pathList = IOHelper.getPathListCl();
-        List<String> cdbFiles = IOHelper.convertFilesToStrings(pathList, Charset.forName(Configuration.defaultEncoding));
+        List<String> cdbFiles = IOHelper.convertFilesToStrings(pathList, Charset.forName(Configuration.defaultCodepage));
         for (String file : cdbFiles) parseCl(file);
     }
 

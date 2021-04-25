@@ -137,7 +137,7 @@ public class IOHelper {
         String nickName = "";
         try {
             nickName = (chat.uin.equals(chat.nickName)) ? "" : "_" +
-                    new String(chat.nickName.getBytes(Configuration.defaultEncoding), StandardCharsets.UTF_8)
+                    new String(chat.nickName.getBytes(Configuration.defaultCodepage), StandardCharsets.UTF_8)
                             .replaceAll("[\\\\/:*?\"<>|]", "");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

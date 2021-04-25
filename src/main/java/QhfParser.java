@@ -68,7 +68,7 @@ public class QhfParser {
         // sometimes there are messages with 0 length. handle it properly
         if (m.msgBlockSize == 27) {
             m.setMessageByteArray(
-                    Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
+                    Configuration.messageWithZeroLength.getBytes(Configuration.defaultCodepage));
             return m;
         }
         if ((m.msgBlockSize - m.messageLength) != 27) {
@@ -77,7 +77,7 @@ public class QhfParser {
             m.messageLength = readInt32(0);
             if (m.messageLength == 0) {
                 m.setMessageByteArray(
-                        Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
+                        Configuration.messageWithZeroLength.getBytes(Configuration.defaultCodepage));
                 return m;
             }
             m.isEncoded = true;
@@ -149,12 +149,12 @@ public class QhfParser {
                         .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
                         .append(")");
                 Commons.addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
                 stringBuilder.setLength(0);
                 outputStream.write(m.getMessageByteArray());
                 Commons.addCRtoStringBuilder(stringBuilder);
                 Commons.addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
                 stringBuilder.setLength(0);
             }
 
@@ -204,7 +204,7 @@ public class QhfParser {
         if (channelAvailableBytes() >= length) {
             ByteBuffer buffer = ByteBuffer.allocate(length);
             fileChannel.read(buffer);
-            return new String(buffer.array(), Configuration.defaultEncoding).trim();
+            return new String(buffer.array(), Configuration.defaultCodepage).trim();
         }
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
     }

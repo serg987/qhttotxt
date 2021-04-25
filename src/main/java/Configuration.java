@@ -2,7 +2,7 @@ import java.time.ZoneId;
 
 public class Configuration {
     public static String ownNickName;
-    public static String defaultEncoding;
+    public static String defaultCodepage;
     public static ZoneId zoneId;
     public static String workingDir;
     public static boolean recursiveSearch;
@@ -67,7 +67,7 @@ public class Configuration {
 
 
     static {
-        defaultEncoding = System.getProperty("file.encoding", "UTF-8");
+        defaultCodepage = System.getProperty("file.encoding", "UTF-8");
         zoneId = ZoneId.systemDefault();
         ownNickName = "You";
         recursiveSearch = false;
@@ -75,7 +75,7 @@ public class Configuration {
     }
 
     public static String getNoCodepageFound() {
-        return String.format(Configuration.noCodepageFound, Configuration.defaultEncoding);
+        return String.format(Configuration.noCodepageFound, Configuration.defaultCodepage);
     }
 
 }

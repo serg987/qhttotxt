@@ -88,12 +88,12 @@ public class MainEncoded {
                         .append(zonedDateTime.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")))
                         .append(")");
                 addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
                 stringBuilder.setLength(0);
                 outputStream.write(message.getMessageByteArray());
                 addCRtoStringBuilder(stringBuilder);
                 addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
                 stringBuilder.setLength(0);
             }
 
@@ -133,7 +133,7 @@ public class MainEncoded {
         // sometimes there are messages with 0 length. handle it properly
         if (message.msgBlockSize == 27) {
             message.setMessageByteArray(
-                    Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
+                    Configuration.messageWithZeroLength.getBytes(Configuration.defaultCodepage));
             return message;
         }
         // handling encoded/plain message; because of that there is no support
@@ -152,7 +152,7 @@ public class MainEncoded {
     private static String decodeMessage(byte[] bytes) {
         String out = "";
         try {
-            out = new String(bytes, Configuration.defaultEncoding);
+            out = new String(bytes, Configuration.defaultCodepage);
         } catch (UnsupportedEncodingException e) {
             out = "[COULD NOT DECODE MESSAGE, TRY USE DIFFERENT CHARSET]";
             e.printStackTrace();
@@ -206,7 +206,7 @@ public class MainEncoded {
         if (fs.available() >= length) {
             byte[] b = new byte[length];
             fs.read(b);
-            return new String(b, Configuration.defaultEncoding);
+            return new String(b, Configuration.defaultCodepage);
         }
         throw new IOException("No bytes available");
     }
