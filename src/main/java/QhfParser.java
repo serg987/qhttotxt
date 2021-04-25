@@ -139,21 +139,21 @@ public class QhfParser {
                 ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
                 stringBuilder.append("--------------------------------------")
                         .append(m.isSent ? ">" : "<").append("-");
-                addCRtoStringBuilder(stringBuilder);
+                Commons.addCRtoStringBuilder(stringBuilder);
                 if (m.corruptedBytesNum > 0) {
                     stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
-                    addCRtoStringBuilder(stringBuilder);
+                    Commons.addCRtoStringBuilder(stringBuilder);
                 }
                 stringBuilder.append(m.isSent ? Configuration.ownNickName : chat.nickName)
                         .append(" (")
                         .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
                         .append(")");
-                addCRtoStringBuilder(stringBuilder);
+                Commons.addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
                 stringBuilder.setLength(0);
                 outputStream.write(m.getMessageByteArray());
-                addCRtoStringBuilder(stringBuilder);
-                addCRtoStringBuilder(stringBuilder);
+                Commons.addCRtoStringBuilder(stringBuilder);
+                Commons.addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
                 stringBuilder.setLength(0);
             }
@@ -163,10 +163,6 @@ public class QhfParser {
             System.out.println(Configuration.getNoCodepageFound());
             e.printStackTrace();
         }
-    }
-
-    private static void addCRtoStringBuilder(StringBuilder stringBuilder) {
-        stringBuilder.append(System.getProperty("line.separator"));
     }
 
 

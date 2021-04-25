@@ -1,12 +1,10 @@
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class IOHelper {
@@ -37,7 +35,7 @@ public class IOHelper {
     }
 
     public static HashMap<Path, Chat> getChatsFromDir() {
-        List<Path> pathList = getPathList();
+        List<Path> pathList = getPathListQHF();
         HashMap<Path, Chat> chatHashMap = new HashMap<>();
         System.out.println(Configuration.startToReadFiles);
         try {
@@ -50,6 +48,25 @@ public class IOHelper {
         }
         System.out.println(Configuration.done);
         return chatHashMap;
+    }
+
+    public static List<String> convertFilesToStrings(List<Path> pathList, Charset charset) {
+        List<String> fileStrsList = new ArrayList<>();
+        try {
+            for (Path path : pathList) {
+                File file = new File(path.toUri());
+                FileInputStream fs = new FileInputStream(file);
+                BufferedReader in = new BufferedReader(new InputStreamReader(fs, charset));
+                List<String> fileLines = in.lines().collect(Collectors.toList());
+                StringBuilder strb = new StringBuilder();
+                fileLines.forEach(s -> strb.append(s).append(System.getProperty("line.separator")));
+                fileStrsList.add(strb.toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(Configuration.done);
+        return fileStrsList;
     }
 
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
@@ -67,9 +84,12 @@ public class IOHelper {
     }
 
 
-    private static List<Path> getPathList() {
+    private static List<Path> getPathList(String[] extensions) {
         List<Path> files = new ArrayList<>();
-        System.out.println(Configuration.analyzingFolders);
+        System.out.println(
+                String.format(Configuration.analyzingFolders,
+                        Commons.populateStringWithListElems(
+                                Arrays.asList(extensions)).toString()));
         Path filePath = Paths.get(Configuration.workingDir);
         if (!Files.exists(filePath)) {
             System.out.printf((Configuration.noPathFound) + "%n", Configuration.workingDir);
@@ -82,7 +102,7 @@ public class IOHelper {
                         ((path, basicFileAttributes) -> basicFileAttributes.isRegularFile()))
                         .filter(file -> {
                                     String fileName = file.getFileName().toString().toLowerCase();
-                                    return fileName.endsWith(".qhf") || fileName.endsWith(".ahf");
+                                    return Arrays.stream(extensions).anyMatch(s -> fileName.endsWith(s));
                                 }
                         )
                         .collect(Collectors.toList());
@@ -98,14 +118,29 @@ public class IOHelper {
         return files;
     }
 
+    public static List<Path> getPathListCl() {
+        String[] extensions = {".cl"};
+        return getPathList(extensions);
+    }
+
+    public static List<Path> getPathListCdb() {
+        String[] extensions = {".cdb"};
+        return getPathList(extensions);
+    }
+
+    private static List<Path> getPathListQHF() {
+        String[] extensions = {".qhf", ".ahf"};
+        return getPathList(extensions);
+    }
+
     private static String getNickNameForFileName(Chat chat) {
         String nickName = "";
         try {
             nickName = (chat.uin.equals(chat.nickName)) ? "" : "_" +
                     new String(chat.nickName.getBytes(Configuration.defaultEncoding), StandardCharsets.UTF_8)
-                    .replaceAll("[\\\\/:*?\"<>|]", "");
+                            .replaceAll("[\\\\/:*?\"<>|]", "");
         } catch (UnsupportedEncodingException e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
         return nickName;
     }

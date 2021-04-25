@@ -21,7 +21,7 @@ public class Configuration {
     public static final String messageIsCorrupted = "[QhtToTxt] Probably this message is corrupted. " +
             "There are %d bytes lost.";
     public static final String noPathFound = "The file or path %s does not exist.";
-    public static final String analyzingFolders = "Seeking for .qhf or .ahf files...";
+    public static final String analyzingFolders = "Seeking for %s files...";
     public static final String startToReadFiles = "Reading files...";
     public static final String done = "Done.";
     public static final String foundNFiles = "Found %d files.";
