@@ -34,6 +34,8 @@ public class Configuration {
             "https://github.com/serg987/qhttotxt";
     public static final String forHelp = "For quick help run with -h";
     public static final String onlyOneParam = "Error! Only single parameter allowed: %s";
+    public static final String contact_info_in_chat_title = "[QhtToTxt] Chat between %s and %s";
+    public static final String contact_info_in_chat = "[QhtToTxt] Contact info: uin: %s; name(s): %s; groups: %s";
     public static final String configMsg = "Current configuration:\n" +
             "Working path: %s\n" +
             "Go recursive: %b; combine histories: %b; your nickname: '%s'; time zone: '%s'; codepage: '%s'";

@@ -33,6 +33,8 @@ public class QhfParser {
             chat.uin = readChars(chat.uinLength);
             chat.nickNameLength = readInt16(0);
             chat.nickName = readChars(chat.nickNameLength);
+            ContactList contactList = new ContactList();
+            contactList.addContact(chat.uin, chat.nickName, "");
 
             while (fs.available() > 6) {
                 chat.messages.add(parseMessage());
@@ -134,6 +136,8 @@ public class QhfParser {
 
         try (FileOutputStream outputStream = new FileOutputStream(fileToSave)) {
             StringBuilder stringBuilder = new StringBuilder();
+
+            if (Configuration.combineHistories) ContactList.addContactInfoToStrBuilder(stringBuilder, chat);
 
             for (Message m : chat.messages) {
                 ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);

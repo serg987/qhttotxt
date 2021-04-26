@@ -50,23 +50,21 @@ public class IOHelper {
         return chatHashMap;
     }
 
-    public static List<String> convertFilesToStrings(List<Path> pathList, Charset charset) {
-        List<String> fileStrsList = new ArrayList<>();
+    public static Map<Path, List<String>> convertFilesToStrings(List<Path> pathList, Charset charset) {
+        Map<Path, List<String>> fileLinesMap = new HashMap<>();
         try {
             for (Path path : pathList) {
                 File file = new File(path.toUri());
                 FileInputStream fs = new FileInputStream(file);
                 BufferedReader in = new BufferedReader(new InputStreamReader(fs, charset));
                 List<String> fileLines = in.lines().collect(Collectors.toList());
-                StringBuilder strb = new StringBuilder();
-                fileLines.forEach(s -> strb.append(s).append(System.getProperty("line.separator")));
-                fileStrsList.add(strb.toString());
+                fileLinesMap.put(path, fileLines);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println(Configuration.done);
-        return fileStrsList;
+        return fileLinesMap;
     }
 
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
@@ -116,6 +114,11 @@ public class IOHelper {
             System.out.printf((Configuration.foundNFiles) + "%n", files.size());
         }
         return files;
+    }
+
+    public static List<Path> getPathListTxt() {
+        String[] extensions = {".txt"};
+        return getPathList(extensions);
     }
 
     public static List<Path> getPathListCl() {

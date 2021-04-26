@@ -18,20 +18,20 @@ public class ContactListsParser {
 
     private static void parseCbdFiles() {
         List<Path> pathList = IOHelper.getPathListCdb();
-        List<String> cdbFiles = IOHelper.convertFilesToStrings(pathList, StandardCharsets.UTF_16);
-        for (String file : cdbFiles) parseCdb(file);
+        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList, StandardCharsets.UTF_16)
+                .values().stream().collect(Collectors.toList());
+        for (List<String> fileLInes : cdbFiles) parseCdb(fileLInes);
     }
 
     private static void parseClFiles() {
         List<Path> pathList = IOHelper.getPathListCl();
-        List<String> cdbFiles = IOHelper.convertFilesToStrings(pathList, Charset.forName(Configuration.defaultCodepage));
-        for (String file : cdbFiles) parseCl(file);
+        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList, Charset.forName(Configuration.defaultCodepage))
+                .values().stream().collect(Collectors.toList());
+        for (List<String> fileLines : cdbFiles) parseCl(fileLines);
     }
 
-    private static void parseCdb(String cdbFile) {
-        String[] lines = cdbFile.split(System.getProperty("line.separator"));
-
-        for (String str : lines) {
+    private static void parseCdb(List<String> fileLInes) {
+        for (String str : fileLInes) {
             String id = "";
             String name = "";
             String group = "";
@@ -48,10 +48,8 @@ public class ContactListsParser {
         }
     }
 
-    private static void parseCl(String clFile) {
-        String[] lines = clFile.split(System.getProperty("line.separator"));
-
-        for (String str : lines) {
+    private static void parseCl(List<String> fileLInes) {
+        for (String str : fileLInes) {
             String[] params = str.split(";");
             String id = params[1];
             String name = params[2];
@@ -72,9 +70,9 @@ public class ContactListsParser {
             for (String uin : sortedUins) {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append("Uin: ").append(uin).append("; name(s): ");
-                stringBuilder.append(Commons.populateStringWithListElems(contactList.get(uin).displayNames));
+                stringBuilder.append(contactList.get(uin).getNames());
                 stringBuilder.append("; group(s): ");
-                stringBuilder.append(Commons.populateStringWithListElems(contactList.get(uin).groups));
+                stringBuilder.append(contactList.get(uin).getGroups());
                 Commons.addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
             }

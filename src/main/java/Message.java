@@ -35,6 +35,13 @@ public class Message {
         messageBytes = bytes;
     }
 
+    public void addLineToMessageByteArray(byte[] bytes) {
+        byte[] newMessageBytes = new byte[messageBytes.length + bytes.length];
+        System.arraycopy(messageBytes, 0, newMessageBytes, 0, messageBytes.length);
+        System.arraycopy(bytes, 0, newMessageBytes, messageBytes.length, bytes.length);
+        messageBytes = newMessageBytes;
+    }
+
     public byte[] getMessageByteArray() {
         if (isEncoded) return getDecodedMessageBytes();
         return messageBytes;
