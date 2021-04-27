@@ -40,6 +40,7 @@ public class Commons {
             date = date.substring(0, 6) + year;
         }
         if (time.length() == 7) time = "0" + time;
+        if (date.length() == 9) date = "0" + date;
         String standartizedDateTime = time + " " + date;
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
         ZonedDateTime zdt = LocalDateTime.parse(standartizedDateTime, dtf).atZone(Configuration.zoneId);

@@ -19,7 +19,7 @@ public class MainCL {
     }
 
     public static void main(String[] args) {
-        Configuration.workingDir = "E:\\!Temp\\210423\\TxtHistory\\mchat";
+        Configuration.workingDir = "E:\\!Temp\\210423\\TxtHistory";
         Configuration.recursiveSearch = true;
 
         List<Path> paths = IOHelper.getPathListTxt();

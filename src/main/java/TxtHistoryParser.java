@@ -1,3 +1,4 @@
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,17 +12,24 @@ import java.util.regex.Pattern;
 
 public class TxtHistoryParser {
 
-    private static final String qip_icq_separator_pattern = "^[-]{38}[<>][-]";
-    private static final String qip_icq_timeline_pattern = "^[\\d|\\p{L}|\\s|@|\\.]*\\s[(][\\d|:]*\\s[\\d|\\/|\\.]*[)]";
+    private static final String qip_icq_separator = "^[-]{38}[<>][-]";
+    private static final String qip_icq_timeline = "^[\\d|\\p{L}|\\s|@|\\.]*\\s[(][\\d|:]*\\s[\\d|\\/|\\.]*[)]";
     private static final String mchat_line_header = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s[\\d]{1,2}([:][\\d]{2}){2}[<|>]";
-    private static final String mchat_line_pattern = mchat_line_header + ".*";
-    private static final String rnq_line_pattern = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s" +
+    private static final String mchat_line = mchat_line_header + ".*";
+    private static final String rnq_line = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s" +
             "([\\d]{2}[:]){2}[\\d]{2}\\s[\\d]{1,12}\\s$";
     private static final byte[] newLineBytes = System.getProperty("line.separator").getBytes();
 
     private static final Pattern mchatLineHeaderPattern = Pattern.compile(mchat_line_header);
+    private static final Pattern rnqLineHeaderPattern = Pattern.compile(rnq_line);
+    private static final Pattern qipIcqSeparatorPattern = Pattern.compile(qip_icq_separator);
+
+    private static Chat chat;
+    private static FileChannel fileChannel;
+    private static Path path;
+    private static TxtHistoryParser.txtHistoryType historyType;
     /*
-        known 3 TYPES of files:
+        known 3 formats of files:
         qip/icq: format:
 {file begins}
 -------------------------------------->-
@@ -33,7 +41,7 @@ message
 Message
 
         mchat: format:
-        {file begins}
+{file begins}
 28.05.08 10:13:17<message
 28.05.08 10:15:26>message
 28.05.08 10:21:39<message
@@ -41,7 +49,7 @@ message str2
 28.05.08 10:21:59>message
 
            RnQ (converted with some history viewer)
-           {file begins}
+{file begins}
 Чат между {Owner_uin} и {contactUin}
 
 
@@ -62,78 +70,47 @@ message
         List<Chat> chats = new ArrayList<>();
         Map<Path, List<String>> map = IOHelper.convertFilesToStrings(paths, Charset.forName(Configuration.defaultCodepage));
         for (Path path : map.keySet()) {
-            chats.add(TxtHistoryParser.parseChatFromTxt(path, map.get(path)));
+            chats.add(parseChatFromTxt(path, map.get(path)));
         }
         return chats;
     }
 
-    public static Chat parseChatFromTxt(Path path, List<String> fileLines) {
-        txtHistoryType chatType = determineTypeOfTxtHistory(fileLines);
-        if (chatType.equals(txtHistoryType.NO_HISTORY)) return null;
-        Chat chat = null;
-        switch (chatType) {
-            case MCHAT:
-                chat = parseMchatChat(path);
-                break;
-            case RNQ:
-                chat = parseRnqChat(path);
-                break;
-            case QIP_ICQ:
-                chat = parseQipChat(path);
-        }
-        chat.uin = path.getFileName().toString().toLowerCase().replace(".txt", "");
-        chat.nickName = chat.uin; // TODO delete after debugging; populating should be by contactlist
-        chat.uinLength = chat.uin.length();
 
-        System.out.println("Found chat with: " + chat.uin + ": messages: " + chat.messages.size());
+
+
+    public static Chat parseChatFromTxt(Path pathToSet, List<String> fileLines) { // TODO change to private after debugging
+        path = pathToSet;
+        historyType = determineTypeOfTxtHistory(fileLines);
+        if (historyType.equals(txtHistoryType.NO_HISTORY)) return null;
+        chat = new Chat();
+        chat.uin = path.getFileName().toString().toLowerCase().replace(".txt", "");
+        chat.nickName = chat.uin; // TODO delete??? after debugging; populating should be by contactlist
+        chat.uinLength = chat.uin.length();
+        parseChat();
+        System.out.println("Found " + historyType.name() + " chat with: " + chat.uin +
+                ": messages: " + chat.messages.size());
 
         return chat;
     }
 
-    private static Chat parseQipChat(Path path) {
-
-        return null;
-    }
-
-    private static Chat parseRnqChat(Path path) {
-
-        return null;
-    }
-
-    private static Chat parseMchatChat(Path path) {
-        Chat chat = new Chat();
+    private static void parseChat() {
         File file = new File(path.toUri());
         FileInputStream fs = null;
-        FileChannel fileChannel = null;
+        fileChannel = null;
         try {
             fs = new FileInputStream(file);
             fileChannel = fs.getChannel();
-            while (channelAvailableBytes(fileChannel) > 0) {
-                byte[] lineBytes = readBytesOfLineFromChannel(fileChannel);
-                String currentString = new String(lineBytes, Configuration.defaultCodepage);
-                Matcher m = mchatLineHeaderPattern.matcher(currentString);
-                if (m.find()) {
-                    Message message = new Message();
-                    String lineHeader = m.group();
-                    int headerLength = lineHeader.length();
-                    char messageDirection = lineHeader.charAt(lineHeader.length() - 1);
-                    if (messageDirection == '>') message.isSent = true;
-                    lineHeader = lineHeader.replace("" + messageDirection, "");
-                    message.unixDate = Commons.parseDateTime(lineHeader);
-                    byte[] lineBytesWithoutHeader = Arrays.copyOfRange(lineBytes, headerLength, lineBytes.length);
-                    message.setMessageByteArray(lineBytesWithoutHeader);
-                    boolean foundAnotherString = true;
-                    while (channelAvailableBytes(fileChannel) > 0 && foundAnotherString){
-                        String nextStr = tryNextString(fileChannel);
-                        m = mchatLineHeaderPattern.matcher(nextStr);
-                        if (!m.find()) {
-                            message.addLineToMessageByteArray(newLineBytes);
-                            message.addLineToMessageByteArray(readBytesOfLineFromChannel(fileChannel));
-                        } else {
-                            foundAnotherString = false;
-                        }
-                    }
-                    chat.messages.add(message);
+            while (channelAvailableBytes() > 0) {
+                switch (historyType) {
+                    case MCHAT:
+                        parseMchatMessage();
+                        break;
+                    case QIP_ICQ:
+                        parseQipMessage();
+                        break;
+                    case RNQ:
+                        parseRnqMessage();
+                        break;
                 }
             }
         } catch (IOException e) {
@@ -146,14 +123,119 @@ message
                 e.printStackTrace();
             }
         }
-        return chat;
     }
 
-    private static byte[] readBytesOfLineFromChannel(FileChannel fileChannel) throws IOException {
+    private static void parseQipMessage() throws IOException {
+        String currentString = new String(readBytesOfLineFromChannel(),
+                Configuration.defaultCodepage);
+        Matcher m = qipIcqSeparatorPattern.matcher(currentString);
+        if (m.find()) {
+            Message message = new Message();
+            char messageDirection = currentString.charAt(currentString.length() - 2);
+            if (messageDirection == '>') message.isSent = true;
+            String header = new String(readBytesOfLineFromChannel(),
+                    Configuration.defaultCodepage);
+            String headerTime = header.split("\\(")[1].replace(")", "");
+            message.unixDate = Commons.parseDateTime(headerTime);
+            message.setMessageByteArray(readBytesOfLineFromChannel());
+            boolean foundAnotherString = true;
+            while (channelAvailableBytes() > 0 && foundAnotherString) {
+                List<String> nextTwoLines = tryNextNLines(2);
+                if (nextTwoLines.size() < 2) {
+                    foundAnotherString = false;
+                    continue;
+                }
+                m = qipIcqSeparatorPattern.matcher(nextTwoLines.get(1));
+                if (!m.find()) {
+                    message.addLineToMessageByteArray(newLineBytes);
+                    message.addLineToMessageByteArray(readBytesOfLineFromChannel());
+                } else {
+                    foundAnotherString = false;
+                    readBytesOfLineFromChannel();
+                }
+            }
+            chat.messages.add(message);
+        }
+    }
+
+    private static void parseRnqMessage() throws IOException {
+        String currentString = new String(readBytesOfLineFromChannel(),
+                Configuration.defaultCodepage);
+        Matcher m = rnqLineHeaderPattern.matcher(currentString);
+        if (m.find()) {
+            Message message = new Message();
+            String[] headerWords = currentString.split(" ");
+            String uinInMessage = headerWords[2];
+            if (!uinInMessage.equals(chat.uin)) message.isSent = true;
+            message.unixDate = Commons.parseDateTime(headerWords[0] + " " + headerWords[1]);
+            message.setMessageByteArray(readBytesOfLineFromChannel());
+            boolean foundAnotherString = true;
+            while (channelAvailableBytes() > 0 && foundAnotherString) {
+                List<String> nextThreeLines = tryNextNLines(3);
+                if (nextThreeLines.size() < 3) {
+                    foundAnotherString = false;
+                    continue;
+                }
+                m = rnqLineHeaderPattern.matcher(nextThreeLines.get(2));
+                if (!m.find()) {
+                    message.addLineToMessageByteArray(newLineBytes);
+                    message.addLineToMessageByteArray(readBytesOfLineFromChannel());
+                } else {
+                    foundAnotherString = false;
+                    readBytesOfLineFromChannel();
+                    readBytesOfLineFromChannel();
+                }
+            }
+            chat.messages.add(message);
+        }
+    }
+
+    private static void parseMchatMessage() throws IOException {
+        byte[] lineBytes = readBytesOfLineFromChannel();
+        String currentString = new String(lineBytes, Configuration.defaultCodepage);
+        Matcher m = mchatLineHeaderPattern.matcher(currentString);
+        if (m.find()) {
+            Message message = new Message();
+            String lineHeader = m.group();
+            int headerLength = lineHeader.length();
+            char messageDirection = lineHeader.charAt(lineHeader.length() - 1);
+            if (messageDirection == '>') message.isSent = true;
+            lineHeader = lineHeader.replace("" + messageDirection, "");
+            message.unixDate = Commons.parseDateTime(lineHeader);
+            byte[] lineBytesWithoutHeader = Arrays.copyOfRange(lineBytes, headerLength, lineBytes.length);
+            message.setMessageByteArray(lineBytesWithoutHeader);
+            boolean foundAnotherString = true;
+            while (channelAvailableBytes() > 0 && foundAnotherString) {
+                String nextStr = tryNextString();
+                m = mchatLineHeaderPattern.matcher(nextStr);
+                if (!m.find()) {
+                    message.addLineToMessageByteArray(newLineBytes);
+                    message.addLineToMessageByteArray(readBytesOfLineFromChannel());
+                } else {
+                    foundAnotherString = false;
+                }
+            }
+            chat.messages.add(message);
+        }
+    }
+
+    private static List<String> tryNextNLines(int n) throws IOException {
+        List<String> out = new ArrayList<>();
+        long previousPosition = fileChannel.position();
+        while (channelAvailableBytes() > 0 && n > 0) {
+            String str = new String(readBytesOfLineFromChannel(), Configuration.defaultCodepage);
+            out.add(str);
+            n--;
+        }
+        fileChannel.position(previousPosition);
+        return out;
+    }
+
+    private static byte[] readBytesOfLineFromChannel() throws IOException {
         long previousPosition = fileChannel.position();
         boolean eolFound = false;
         ByteBuffer buffer;
-        while (channelAvailableBytes(fileChannel) > 0 && !eolFound) {
+        while (channelAvailableBytes() > 0 && !eolFound) {
             buffer = ByteBuffer.allocate(1);
             fileChannel.read(buffer);
             buffer.position(0);
@@ -182,40 +264,32 @@ message
         return buffer.array();
     }
 
-    private static String tryNextString(FileChannel fileChannel) throws IOException {
+    private static String tryNextString() throws IOException {
         long previousPosition = fileChannel.position();
-        String out = new String(readBytesOfLineFromChannel(fileChannel), Configuration.defaultCodepage);
+        String out = new String(readBytesOfLineFromChannel(), Configuration.defaultCodepage);
         fileChannel.position(previousPosition);
         return out;
-    }
-
-
-    public static void printFileTypes(Map<Path, List<String>> files) {
-        files.entrySet().forEach((e) -> {
-            System.out.println(e.getKey().toString() + ": " + determineTypeOfTxtHistory(e.getValue()));
-        });
-
     }
 
     private static txtHistoryType determineTypeOfTxtHistory(List<String> fileLines) {
         for (int i = 0; i < fileLines.size(); i++) {
             String line = fileLines.get(i);
             if (line.isEmpty()) continue;
-            if (line.matches(qip_icq_separator_pattern)) {
+            if (line.matches(qip_icq_separator)) {
                 if (i + 1 < fileLines.size()) {
-                    if (fileLines.get(i + 1).matches(qip_icq_timeline_pattern)) return txtHistoryType.QIP_ICQ;
+                    if (fileLines.get(i + 1).matches(qip_icq_timeline)) return txtHistoryType.QIP_ICQ;
                 }
             }
-            if (line.matches(mchat_line_pattern)) return txtHistoryType.MCHAT;
-            if (line.matches(rnq_line_pattern)) return txtHistoryType.RNQ;
+            if (line.matches(mchat_line)) return txtHistoryType.MCHAT;
+            if (line.matches(rnq_line)) return txtHistoryType.RNQ;
         }
 
 
         return txtHistoryType.NO_HISTORY;
     }
 
-    private static int channelAvailableBytes(FileChannel channel) throws IOException {
-        return (int) (channel.size() - channel.position());
+    private static int channelAvailableBytes() throws IOException {
+        return (int) (fileChannel.size() - fileChannel.position());
     }
 
     enum txtHistoryType {
