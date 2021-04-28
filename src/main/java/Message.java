@@ -45,8 +45,7 @@ public class Message {
     }
 
     public void addLineToMessageText(String message) {
-        messageText.concat(System.getProperty("line.separator"));
-        messageText.concat(message);
+        messageText = messageText.concat(System.getProperty("line.separator")).concat(message);
     }
 
     public byte[] getMessageByteArray() {
