@@ -4,6 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,7 +23,7 @@ public class IOHelper {
                     .concat(getNickNameForFileName(chat)).concat(".txt");
             Path outPath = Paths.get(path.getParent().toString(), fileName);
             try {
-                QhfParser.saveChatToTxt(chat, outPath);
+                saveChatToTxt(chat, outPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -52,19 +55,24 @@ public class IOHelper {
 
     public static Map<Path, List<String>> convertFilesToStrings(List<Path> pathList, Charset charset) {
         Map<Path, List<String>> fileLinesMap = new HashMap<>();
-        try {
-            for (Path path : pathList) {
-                File file = new File(path.toUri());
-                FileInputStream fs = new FileInputStream(file);
-                BufferedReader in = new BufferedReader(new InputStreamReader(fs, charset));
-                List<String> fileLines = in.lines().collect(Collectors.toList());
-                fileLinesMap.put(path, fileLines);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (Path path : pathList) {
+            fileLinesMap.put(path, convertFileToStrings(path, charset));
         }
         System.out.println(Configuration.done);
         return fileLinesMap;
+    }
+
+    public static List<String> convertFileToStrings(Path path, Charset charset) {
+        List<String> fileLines = null;
+        try {
+            File file = new File(path.toUri());
+            FileInputStream fs = new FileInputStream(file);
+            BufferedReader in = new BufferedReader(new InputStreamReader(fs, charset));
+            fileLines = in.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileLines;
     }
 
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
@@ -73,7 +81,7 @@ public class IOHelper {
             Path outPath = Paths.get(Configuration.workingDir, uin
                     + getNickNameForFileName(chat) + "_" + Configuration.ownNickName + ".txt");
             try {
-                QhfParser.saveChatToTxt(chat, outPath);
+                saveChatToTxt(chat, outPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -137,14 +145,73 @@ public class IOHelper {
     }
 
     private static String getNickNameForFileName(Chat chat) {
-        String nickName = "";
-        try {
-            nickName = (chat.uin.equals(chat.nickName)) ? "" : "_" +
-                    new String(chat.nickName.getBytes(Configuration.defaultCodepage), StandardCharsets.UTF_8)
+        //String nickName = "";
+       // try {
+            String nickName = (chat.uin.equals(chat.nickName)) ? "" : "_" + chat.nickName
+       //             new String(chat.nickName.getBytes(Configuration.defaultCodepage), StandardCharsets.UTF_8)
                             .replaceAll("[\\\\/:*?\"<>|]", "");
+       // } catch (UnsupportedEncodingException e) {
+       //     e.printStackTrace();
+       // }
+        return nickName;
+    }
+
+    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
+        File fileToSave = new File(path.toUri());
+
+        try (FileOutputStream outputStream = new FileOutputStream(fileToSave)) {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            if (Configuration.combineHistories) ContactList.addContactInfoToStrBuilder(stringBuilder, chat);
+
+            for (Message m : chat.messages) {
+                ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
+                stringBuilder.append("--------------------------------------")
+                        .append(m.isSent ? ">" : "<").append("-");
+                Commons.addCRtoStringBuilder(stringBuilder);
+                if (m.corruptedBytesNum > 0) {
+                    stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
+                    Commons.addCRtoStringBuilder(stringBuilder);
+                }
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
+                stringBuilder.setLength(0);
+                String nickName = (m.isSent) ? Configuration.ownNickName : chat.nickName;
+                outputStream.write(nickName.getBytes(StandardCharsets.UTF_8));
+                stringBuilder.append(" (")
+                        .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
+                        .append(")");
+                Commons.addCRtoStringBuilder(stringBuilder);
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
+                stringBuilder.setLength(0);
+                String utf8 = new String(m.getMessageByteArray(), StandardCharsets.UTF_8);
+                String cp1251 = new String(m.getMessageByteArray(), Configuration.defaultCodepage);
+                String converted = guessCodePageAndConvertIfNeeded(m.getMessageByteArray());
+                // outputStream.write(m.getMessageByteArray());
+                stringBuilder.append(converted);
+                Commons.addCRtoStringBuilder(stringBuilder);
+                Commons.addCRtoStringBuilder(stringBuilder);
+                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
+                stringBuilder.setLength(0);
+            }
+
+            outputStream.flush();
         } catch (UnsupportedEncodingException e) {
+            System.out.println(Configuration.getNoCodepageFound());
             e.printStackTrace();
         }
-        return nickName;
+    }
+
+    private static String guessCodePageAndConvertIfNeeded(byte[] bytes) {
+        String utf8 = new String(bytes, StandardCharsets.UTF_8);
+        Charset codepage = Charset.forName(Configuration.defaultCodepage);
+        char[] utf8chars = utf8.toCharArray();
+        int i = 0;
+        boolean isUtf = true;
+        while (i < utf8chars.length && isUtf) {
+            if (utf8chars[i] > 65500) isUtf = false;
+            i++;
+        }
+        if (isUtf) codepage = StandardCharsets.UTF_8;
+        return new String(bytes, codepage);
     }
 }

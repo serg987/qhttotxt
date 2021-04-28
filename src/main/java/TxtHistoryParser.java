@@ -66,17 +66,16 @@ message
 
      */
 
-    public static List<Chat> parseChatsFromTxt(List<Path> paths) {
-        List<Chat> chats = new ArrayList<>();
-        Map<Path, List<String>> map = IOHelper.convertFilesToStrings(paths, Charset.forName(Configuration.defaultCodepage));
-        for (Path path : map.keySet()) {
-            chats.add(parseChatFromTxt(path, map.get(path)));
+    public static HashMap<Path, Chat> parseChatsFromTxt() {
+        HashMap<Path, Chat> chats = new HashMap<>();
+        List<Path> paths = IOHelper.getPathListTxt();
+        for (Path path : paths) {
+            List<String> fileLines = IOHelper.convertFileToStrings(path, Charset.forName(Configuration.defaultCodepage));
+            Chat chat = TxtHistoryParser.parseChatFromTxt(path, fileLines);
+            if (chat != null) chats.put(path, chat);
         }
         return chats;
     }
-
-
-
 
     public static Chat parseChatFromTxt(Path pathToSet, List<String> fileLines) { // TODO change to private after debugging
         path = pathToSet;

@@ -1,3 +1,6 @@
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,5 +48,32 @@ public class Commons {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
         ZonedDateTime zdt = LocalDateTime.parse(standartizedDateTime, dtf).atZone(Configuration.zoneId);
         return (int) zdt.toEpochSecond();
+    }
+
+    public static String createInternalJavaStringForOutsideText(String str) {
+        String out = str;
+        try {
+            out = new String(str.getBytes(Configuration.defaultCodepage), StandardCharsets.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
+
+    public static boolean isUtf8(byte[] bytes) {
+        int i = 0;
+        boolean isUtf = true;
+        String utf8 = new String(bytes, StandardCharsets.UTF_8);
+        char[] utf8chars = utf8.toCharArray();
+        while (i < utf8chars.length && isUtf) {
+            if (utf8chars[i] > 65500) isUtf = false;
+            i++;
+        }
+        return isUtf;
+    }
+
+    public static String guessCodePageAndConvertIfNeeded(byte[] bytes) {
+        Charset charset = (isUtf8(bytes)) ? StandardCharsets.UTF_8 : Charset.forName(Configuration.defaultCodepage);
+        return new String(bytes, charset);
     }
 }

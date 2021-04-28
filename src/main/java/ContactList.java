@@ -4,11 +4,11 @@ import java.util.List;
 
 public class ContactList {
 
-    public static HashMap<String, Contact> contactList = new HashMap<>();
+    private static HashMap<String, Contact> contactList = new HashMap<>();
 
     public void addContact(String id, String name, String group) {
-        contactList.putIfAbsent(id, new Contact(id, name, group));
         contactList.computeIfPresent(id, (s, contact) -> contact.update(name, group));
+        contactList.putIfAbsent(id, new Contact(id, name, group));
     }
 
     class Contact {
@@ -25,8 +25,11 @@ public class ContactList {
         }
 
         Contact update(String name, String group) {
-            if (name !=null && !name.isEmpty() &&!displayNames.contains(name)) displayNames.add(name);
-            if (group !=null && !group.isEmpty() && !groups.contains(group)) groups.add(group);
+            if (name != null &&
+                    !name.isEmpty() &&
+                    !id.equals(name) &&
+                    !displayNames.contains(name)) displayNames.add(name);
+            if (group != null && !group.isEmpty() && !groups.contains(group)) groups.add(group);
             return this;
         }
 
@@ -40,20 +43,30 @@ public class ContactList {
     }
 
     public static void addContactInfoToStrBuilder(StringBuilder stringBuilder, Chat chat) {
-        if (contactList == null) return;
         String uin = chat.uin;
+        if (contactList == null || !contactList.containsKey(uin)) return;
         if (!contactList.containsKey(uin)) {
             Contact contact = contactList.get(uin);
             stringBuilder.append(String.format(Configuration.contact_info_in_chat_title,
                     Configuration.ownNickName, chat.nickName));
             Commons.addCRtoStringBuilder(stringBuilder);
             stringBuilder.append(String.format(Configuration.contact_info_in_chat,
-                    contact.id, contact.getNames(), contact.getGroups()));
+                    contact.id,
+                    (contact.getNames().toString().isEmpty()) ? contact.id : contact.getNames(),
+                    (contact.getGroups().toString().isEmpty()) ? "No groups found" : contact.getGroups()));
             Commons.addCRtoStringBuilder(stringBuilder);
             Commons.addCRtoStringBuilder(stringBuilder);
         }
+    }
 
+    public static void populateChatWithName(Chat chat) {
+        String uin = chat.uin;
 
+        if (!chat.nickName.equals(uin) &&
+                contactList.containsKey(uin) &&
+                !contactList.get(uin).displayNames.isEmpty()) {
+            chat.nickName = contactList.get(uin).displayNames.get(0);
+        } else if (chat.nickName.isEmpty()) chat.nickName = chat.uin;
     }
 
     public static HashMap<String, Contact> getContactList() {

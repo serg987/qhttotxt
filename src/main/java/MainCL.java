@@ -1,7 +1,6 @@
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class MainCL {
 
         for (Path path : chatMap.keySet()) {
             try {
-                QhfParser.saveChatToTxt(chatMap.get(path), path);
+                IOHelper.saveChatToTxt(chatMap.get(path), path);
             } catch (IOException e) {
                 e.printStackTrace();
             }

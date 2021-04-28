@@ -6,10 +6,13 @@ import java.util.stream.Collectors;
 
 public class Combiner {
     public static void combineChats() {
+        System.out.println(Configuration.combiningFiles);
         HashMap<String, Chat> chatHashMap = new HashMap<>();
         HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir();
-        System.out.println(Configuration.combiningFiles);
-        pathChatHashMap.forEach((key, chat) -> {
+        // Experimental: combine with existing txt history
+        pathChatHashMap.putAll(TxtHistoryParser.parseChatsFromTxt());
+
+        pathChatHashMap.forEach((uin, chat) -> {
             chatHashMap.putIfAbsent(chat.uin, chat);
             chatHashMap.computeIfPresent(chat.uin, (uinInMap, ch) -> {
                 if (ch.nickName.equals(ch.uin)) ch.nickName = chat.nickName;
@@ -17,6 +20,9 @@ public class Combiner {
                 return ch;
             });
         });
+
+        pathChatHashMap.values().forEach(ContactList::populateChatWithName);
+
         System.out.println(Configuration.done);
         deleteDuplicates(chatHashMap);
         sortMessagesByTime(chatHashMap);

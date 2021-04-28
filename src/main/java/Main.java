@@ -1,4 +1,7 @@
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.util.*;
@@ -19,11 +22,19 @@ public class Main {
 
         parseArgsAndCreateConfig(argsList);
 
-        System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
-                Configuration.recursiveSearch, Configuration.combineHistories,
-                Configuration.ownNickName, Configuration.zoneId, Configuration.defaultCodepage);
-
+        try {
+            System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
+                    Configuration.recursiveSearch, Configuration.combineHistories,
+                    new String(Configuration.ownNickName.getBytes(StandardCharsets.UTF_8), Configuration.defaultCodepage), Configuration.zoneId, Configuration.defaultCodepage);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         if (Configuration.combineHistories && Files.isDirectory(Paths.get(Configuration.workingDir))) {
+            ContactListsParser.parseContactListFiles();
+            if (!ContactList.getContactList().isEmpty()) {
+                Path contactListPath = Paths.get(Configuration.workingDir, Configuration.contactListName);
+                ContactListsParser.saveContactList(contactListPath);
+            }
             Combiner.combineChats();
         } else IOHelper.convertFiles();
 
@@ -60,7 +71,8 @@ public class Main {
                             i++;
                             break;
                         case 'n':
-                            Configuration.ownNickName = argsList.get(i + 1);
+                            Configuration.ownNickName = Commons
+                                        .createInternalJavaStringForOutsideText(argsList.get(i + 1));
                             i++;
                             break;
                     }

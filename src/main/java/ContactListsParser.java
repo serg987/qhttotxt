@@ -13,7 +13,13 @@ public class ContactListsParser {
     public static void parseContactListFiles() {
         parseCbdFiles();
         parseClFiles();
-        System.out.println("Found contacts: " + ContactList.getContactList().size());
+        int cLSize = ContactList.getContactList().size();
+        if (cLSize == 0) {
+            System.out.println("No contact list files found or no contacts were found inside them");
+        } else {
+            System.out.println("Found " + cLSize + " contacts.");
+        }
+
     }
 
     private static void parseCbdFiles() {
@@ -60,7 +66,8 @@ public class ContactListsParser {
 
     public static void saveContactList(Path path) {
         File fileToSave = new File(path.toUri());
-
+        System.out.println("Saving contact list to '" +
+                path.toAbsolutePath().toString() + "' - " + ContactList.getContactList().size() + " contacts");
         HashMap<String, ContactList.Contact> contactList = ContactList.getContactList();
         List<String> sortedUins = contactList.keySet().stream().sorted().collect(Collectors.toList());
         FileOutputStream outputStream = null;

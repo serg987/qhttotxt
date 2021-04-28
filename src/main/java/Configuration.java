@@ -1,3 +1,5 @@
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 
 public class Configuration {
@@ -7,6 +9,9 @@ public class Configuration {
     public static String workingDir;
     public static boolean recursiveSearch;
     public static boolean combineHistories;
+
+    // Local constants
+    public static final String contactListName = "contacts.txt";
 
     // Local service messages
     private static final String noCodepageFound = "Codepage %s cannot be applied to the text.";
@@ -35,7 +40,8 @@ public class Configuration {
     public static final String forHelp = "For quick help run with -h";
     public static final String onlyOneParam = "Error! Only single parameter allowed: %s";
     public static final String contact_info_in_chat_title = "[QhtToTxt] Chat between %s and %s";
-    public static final String contact_info_in_chat = "[QhtToTxt] Contact info: uin: %s; name(s): %s; groups: %s";
+    public static final String contact_info_in_chat = "[QhtToTxt] Contact info: uin: %s; known name(s): %s; " +
+            "knows groups: %s";
     public static final String configMsg = "Current configuration:\n" +
             "Working path: %s\n" +
             "Go recursive: %b; combine histories: %b; your nickname: '%s'; time zone: '%s'; codepage: '%s'";
