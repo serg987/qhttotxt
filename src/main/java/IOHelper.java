@@ -11,6 +11,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class IOHelper {
+    private static final byte[] lineSeparatorBytes = System.getProperty("line.separator").getBytes();
+    private static final int lineSeparatorLength = lineSeparatorBytes.length;
+
     public static void convertFiles() {
         saveFiles(getChatsFromDir());
     }
@@ -20,10 +23,10 @@ public class IOHelper {
         chatHashMap.forEach((path, chat) -> {
             String fileName = path.getFileName().toString().toLowerCase()
                     .replace(".qhf", "").replace(".ahf", "")
-                    .concat(getNickNameForFileName(chat)).concat(".txt");
+                    .concat(chat.getNickNameForFileName()).concat(".txt");
             Path outPath = Paths.get(path.getParent().toString(), fileName);
             try {
-                saveChatToTxt(chat, outPath);
+                saveChatToTxtNew(chat, outPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -53,25 +56,36 @@ public class IOHelper {
         return chatHashMap;
     }
 
-    public static Map<Path, List<String>> convertFilesToStrings(List<Path> pathList, Charset charset) {
+    public static Map<Path, List<String>> convertFilesToStrings(List<Path> pathList) {
         Map<Path, List<String>> fileLinesMap = new HashMap<>();
         for (Path path : pathList) {
-            fileLinesMap.put(path, convertFileToStrings(path, charset));
+            fileLinesMap.put(path, convertFileToStrings(path));
         }
         System.out.println(Configuration.done);
         return fileLinesMap;
     }
 
-    public static List<String> convertFileToStrings(Path path, Charset charset) {
-        List<String> fileLines = null;
-        try {
-            File file = new File(path.toUri());
-            FileInputStream fs = new FileInputStream(file);
-            BufferedReader in = new BufferedReader(new InputStreamReader(fs, charset));
-            fileLines = in.lines().collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static List<String> convertFileToStrings(Path path) {
+        byte[] fileBytes = readFileToByteArray(path);
+        List<String> fileLines = new ArrayList<>();
+        byte[] partForCheckingIfUtf16 = Arrays.copyOfRange(fileBytes,
+                0,
+                (fileBytes.length > 100) ? 100 : fileBytes.length);
+        Charset charset = Commons.guessCharset(partForCheckingIfUtf16);
+        if (charset.equals(StandardCharsets.UTF_16)) {
+            InputStream stream = new ByteArrayInputStream(fileBytes);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_16));
+            fileLines = reader.lines().collect(Collectors.toList());
+        } else {
+            int i = 0;
+            while (i < fileBytes.length) {
+                byte[] nextLineBytes = getNextLineFromFileArray(fileBytes, i);
+                String nextLine = Commons.guessCodePageAndConvertIfNeeded(nextLineBytes);
+                fileLines.add(nextLine);
+                i += nextLineBytes.length + lineSeparatorLength;
+            }
         }
+
         return fileLines;
     }
 
@@ -79,13 +93,14 @@ public class IOHelper {
         System.out.println(Configuration.savingFiles);
         chatHashMap.forEach((uin, chat) -> {
             Path outPath = Paths.get(Configuration.workingDir, uin
-                    + getNickNameForFileName(chat) + "_" + Configuration.ownNickName + ".txt");
+                    + chat.getNickNameForFileName() + "_" + Configuration.ownNickName + ".txt");
             try {
-                saveChatToTxt(chat, outPath);
+                saveChatToTxtNew(chat, outPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+
         System.out.println(Configuration.done);
     }
 
@@ -144,19 +159,48 @@ public class IOHelper {
         return getPathList(extensions);
     }
 
-    private static String getNickNameForFileName(Chat chat) {
-        //String nickName = "";
-       // try {
-            String nickName = (chat.uin.equals(chat.nickName)) ? "" : "_" + chat.nickName
-       //             new String(chat.nickName.getBytes(Configuration.defaultCodepage), StandardCharsets.UTF_8)
-                            .replaceAll("[\\\\/:*?\"<>|]", "");
-       // } catch (UnsupportedEncodingException e) {
-       //     e.printStackTrace();
-       // }
-        return nickName;
+    public static void saveChatToTxtNew(Chat chat, Path path) throws IOException {
+        File fileToSave = new File(path.toUri());
+        FileWriter writer = null;
+        StringBuilder stringBuilder = new StringBuilder();
+        if (Configuration.combineHistories) ContactList.addContactInfoToStrBuilder(stringBuilder, chat);
+
+        for (Message m : chat.messages) {
+            ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
+            String nickName = (m.isSent) ? Configuration.ownNickName : chat.nickName;
+            stringBuilder.append("--------------------------------------")
+                    .append(m.isSent ? ">" : "<").append("-");
+            Commons.addCRtoStringBuilder(stringBuilder);
+            if (m.corruptedBytesNum > 0) {
+                stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
+                Commons.addCRtoStringBuilder(stringBuilder);
+            }
+            stringBuilder.append(nickName).append(" (")
+                    .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
+                    .append(")");
+            Commons.addCRtoStringBuilder(stringBuilder);
+            stringBuilder.append(m.messageText);
+            Commons.addCRtoStringBuilder(stringBuilder);
+            Commons.addCRtoStringBuilder(stringBuilder);
+        }
+
+        try {
+            writer = new FileWriter(fileToSave);
+            writer.write(stringBuilder.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }  finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
-    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
+/*    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
         File fileToSave = new File(path.toUri());
 
         try (FileOutputStream outputStream = new FileOutputStream(fileToSave)) {
@@ -185,7 +229,7 @@ public class IOHelper {
                 stringBuilder.setLength(0);
                 String utf8 = new String(m.getMessageByteArray(), StandardCharsets.UTF_8);
                 String cp1251 = new String(m.getMessageByteArray(), Configuration.defaultCodepage);
-                String converted = guessCodePageAndConvertIfNeeded(m.getMessageByteArray());
+                String converted = Commons.guessCodePageAndConvertIfNeeded(m.getMessageByteArray());
                 // outputStream.write(m.getMessageByteArray());
                 stringBuilder.append(converted);
                 Commons.addCRtoStringBuilder(stringBuilder);
@@ -199,19 +243,46 @@ public class IOHelper {
             System.out.println(Configuration.getNoCodepageFound());
             e.printStackTrace();
         }
+    }*/
+
+    private static byte[] readFileToByteArray(Path path) {
+        byte[] bytes = new byte[0];
+        File file = new File(path.toUri());
+        FileInputStream fs = null;
+        try {
+            fs = new FileInputStream(file);
+            bytes = new byte[fs.available()];
+            fs.read(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fs != null) {
+                try {
+                    fs.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return bytes;
     }
 
-    private static String guessCodePageAndConvertIfNeeded(byte[] bytes) {
-        String utf8 = new String(bytes, StandardCharsets.UTF_8);
-        Charset codepage = Charset.forName(Configuration.defaultCodepage);
-        char[] utf8chars = utf8.toCharArray();
-        int i = 0;
-        boolean isUtf = true;
-        while (i < utf8chars.length && isUtf) {
-            if (utf8chars[i] > 65500) isUtf = false;
+    private static byte[] getNextLineFromFileArray(byte[] bytes, int startIndex) {
+        boolean eolFound = false;
+        int length = bytes.length;
+        int i = startIndex;
+        while (i < length && !eolFound) {
+            if (bytes[i] == lineSeparatorBytes[0]) {
+                int j = i;
+                while (j < length && j - i < lineSeparatorLength && bytes[j] == lineSeparatorBytes[j - i]) {
+                    j++;
+                }
+                if (j - i == lineSeparatorLength) {
+                    eolFound = true;
+                }
+            }
             i++;
         }
-        if (isUtf) codepage = StandardCharsets.UTF_8;
-        return new String(bytes, codepage);
+        return Arrays.copyOfRange(bytes, startIndex, i - 1);
     }
 }

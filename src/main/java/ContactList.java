@@ -45,18 +45,16 @@ public class ContactList {
     public static void addContactInfoToStrBuilder(StringBuilder stringBuilder, Chat chat) {
         String uin = chat.uin;
         if (contactList == null || !contactList.containsKey(uin)) return;
-        if (!contactList.containsKey(uin)) {
-            Contact contact = contactList.get(uin);
-            stringBuilder.append(String.format(Configuration.contact_info_in_chat_title,
-                    Configuration.ownNickName, chat.nickName));
-            Commons.addCRtoStringBuilder(stringBuilder);
-            stringBuilder.append(String.format(Configuration.contact_info_in_chat,
-                    contact.id,
-                    (contact.getNames().toString().isEmpty()) ? contact.id : contact.getNames(),
-                    (contact.getGroups().toString().isEmpty()) ? "No groups found" : contact.getGroups()));
-            Commons.addCRtoStringBuilder(stringBuilder);
-            Commons.addCRtoStringBuilder(stringBuilder);
-        }
+        Contact contact = contactList.get(uin);
+        stringBuilder.append(String.format(Configuration.contact_info_in_chat_title,
+                Configuration.ownNickName, chat.nickName));
+        Commons.addCRtoStringBuilder(stringBuilder);
+        stringBuilder.append(String.format(Configuration.contact_info_in_chat,
+                contact.id,
+                (contact.getNames().toString().isEmpty()) ? contact.id : contact.getNames(),
+                (contact.getGroups().toString().isEmpty()) ? "No groups found" : contact.getGroups()));
+        Commons.addCRtoStringBuilder(stringBuilder);
+        Commons.addCRtoStringBuilder(stringBuilder);
     }
 
     public static void populateChatWithName(Chat chat) {

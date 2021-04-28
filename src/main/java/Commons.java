@@ -1,4 +1,3 @@
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -8,11 +7,11 @@ import java.util.List;
 
 public class Commons {
 
-    static void addCRtoStringBuilder(StringBuilder stringBuilder) {
+    public static void addCRtoStringBuilder(StringBuilder stringBuilder) {
         stringBuilder.append(System.getProperty("line.separator"));
     }
 
-    static StringBuilder populateStringWithListElems(List<String> stringList) {
+    public static StringBuilder populateStringWithListElems(List<String> stringList) {
         StringBuilder stringBuilder = new StringBuilder();
         if (stringList.size() == 0) return stringBuilder;
         stringBuilder.append("'");
@@ -50,30 +49,27 @@ public class Commons {
         return (int) zdt.toEpochSecond();
     }
 
-    public static String createInternalJavaStringForOutsideText(String str) {
-        String out = str;
-        try {
-            out = new String(str.getBytes(Configuration.defaultCodepage), StandardCharsets.UTF_8);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return out;
-    }
-
-    public static boolean isUtf8(byte[] bytes) {
+    public static Charset guessCharset(byte[] bytes) {
+        String utf8_1 = new String(bytes, StandardCharsets.UTF_8);
+        String cp1251 = new String(bytes, Charset.forName(Configuration.defaultCodepage));
+        String utf16 = new String(bytes, StandardCharsets.UTF_16);
         int i = 0;
-        boolean isUtf = true;
+        int numberOfBelowTen = 0;
+        int numberOf65K = 0;
         String utf8 = new String(bytes, StandardCharsets.UTF_8);
         char[] utf8chars = utf8.toCharArray();
-        while (i < utf8chars.length && isUtf) {
-            if (utf8chars[i] > 65500) isUtf = false;
+        int length = utf8chars.length;
+        while (i < length) {
+            if (utf8chars[i] > 65500) numberOf65K++;
+            if (utf8chars[i] < 10) numberOfBelowTen++;
             i++;
         }
-        return isUtf;
+        if (numberOfBelowTen > length / 3) return StandardCharsets.UTF_16;
+        if (numberOf65K > 0) return Charset.forName(Configuration.defaultCodepage);
+        return StandardCharsets.UTF_8;
     }
 
     public static String guessCodePageAndConvertIfNeeded(byte[] bytes) {
-        Charset charset = (isUtf8(bytes)) ? StandardCharsets.UTF_8 : Charset.forName(Configuration.defaultCodepage);
-        return new String(bytes, charset);
+        return new String(bytes, guessCharset(bytes));
     }
 }

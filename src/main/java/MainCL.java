@@ -22,7 +22,7 @@ public class MainCL {
         Configuration.recursiveSearch = true;
 
         List<Path> paths = IOHelper.getPathListTxt();
-        Map<Path, List<String>> map = IOHelper.convertFilesToStrings(paths, Charset.forName(Configuration.defaultCodepage));
+        Map<Path, List<String>> map = IOHelper.convertFilesToStrings(paths);
         Map<Path, Chat> chatMap = new HashMap<>();
         for (Path path : paths) {
             Chat chat = TxtHistoryParser.parseChatFromTxt(path, map.get(path));
@@ -33,7 +33,7 @@ public class MainCL {
 
         for (Path path : chatMap.keySet()) {
             try {
-                IOHelper.saveChatToTxt(chatMap.get(path), path);
+                IOHelper.saveChatToTxtNew(chatMap.get(path), path);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -38,7 +38,7 @@ public class MainEncoded {
             System.out.println("Messages: " + chat.messages.size());
 
 
-            IOHelper.saveChatToTxt(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
+            IOHelper.saveChatToTxtNew(chat, Paths.get("C:\\Users\\Testing-Coding\\IdeaProjects\\qhftotxt\\src\\main\\resources\\testfiles\\4.txt"));
             //saveTxtFile3(chat);
             //  messages.stream().forEach(m -> System.out.println(m.message));
 
@@ -58,7 +58,7 @@ public class MainEncoded {
             System.out.println("message.typeOfMessageField=" + message.typeOfMessageField);
             System.out.println("message.messageLengthBlockSize=" + message.messageLengthBlockSize);
             System.out.println("message.messageLength=" + message.messageLength);
-            System.out.println("message.message=" + message.getMessageByteArray().toString());
+            System.out.println("message.message=" + message.messageText);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -90,7 +90,7 @@ public class MainEncoded {
                 addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
                 stringBuilder.setLength(0);
-                outputStream.write(message.getMessageByteArray());
+             //   outputStream.write(message.getMessageByteArray());
                 addCRtoStringBuilder(stringBuilder);
                 addCRtoStringBuilder(stringBuilder);
                 outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
@@ -111,7 +111,7 @@ public class MainEncoded {
         stringBuilder.append(System.getProperty("line.separator"));
     }
 
-    private static Message parseMessage(FileInputStream fs) throws IOException {
+/*    private static Message parseMessage(FileInputStream fs) throws IOException {
         Message message = new Message();
         if (readInt16(fs, 0) != 1) {
           //  String aaa = "jjj";
@@ -147,7 +147,7 @@ public class MainEncoded {
         message.setMessageByteArray(messageStringEncoded);
 
         return message;
-    }
+    }*/
 
     private static String decodeMessage(byte[] bytes) {
         String out = "";

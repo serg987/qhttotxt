@@ -1,5 +1,4 @@
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -24,14 +23,14 @@ public class ContactListsParser {
 
     private static void parseCbdFiles() {
         List<Path> pathList = IOHelper.getPathListCdb();
-        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList, StandardCharsets.UTF_16)
+        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList)
                 .values().stream().collect(Collectors.toList());
         for (List<String> fileLInes : cdbFiles) parseCdb(fileLInes);
     }
 
     private static void parseClFiles() {
         List<Path> pathList = IOHelper.getPathListCl();
-        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList, Charset.forName(Configuration.defaultCodepage))
+        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList)
                 .values().stream().collect(Collectors.toList());
         for (List<String> fileLines : cdbFiles) parseCl(fileLines);
     }
@@ -66,35 +65,41 @@ public class ContactListsParser {
 
     public static void saveContactList(Path path) {
         File fileToSave = new File(path.toUri());
+        FileOutputStream outputStream = null;
+        StringBuilder stringBuilder = new StringBuilder();
+        FileWriter writer = null;
+
         System.out.println("Saving contact list to '" +
                 path.toAbsolutePath().toString() + "' - " + ContactList.getContactList().size() + " contacts");
         HashMap<String, ContactList.Contact> contactList = ContactList.getContactList();
         List<String> sortedUins = contactList.keySet().stream().sorted().collect(Collectors.toList());
-        FileOutputStream outputStream = null;
+        for (String uin : sortedUins) {
+            stringBuilder.append("Uin: ").append(uin).append("; name(s): ");
+            stringBuilder.append(contactList.get(uin).getNames());
+            stringBuilder.append("; group(s): ");
+            stringBuilder.append(contactList.get(uin).getGroups());
+            Commons.addCRtoStringBuilder(stringBuilder);
+        }
         try {
-            outputStream = new FileOutputStream(fileToSave);
+            writer = new FileWriter(fileToSave);
+            writer.write(stringBuilder.toString());
+            //outputStream = new FileOutputStream(fileToSave);
 
-            for (String uin : sortedUins) {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("Uin: ").append(uin).append("; name(s): ");
-                stringBuilder.append(contactList.get(uin).getNames());
-                stringBuilder.append("; group(s): ");
-                stringBuilder.append(contactList.get(uin).getGroups());
-                Commons.addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
-            }
-            outputStream.flush();
-        } catch (UnsupportedEncodingException e) {
-            System.out.println(Configuration.getNoCodepageFound());
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+
+                //outputStream.write(stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
+
+          //  outputStream.flush();
+   //     } catch (UnsupportedEncodingException e) {
+    //        System.out.println(Configuration.getNoCodepageFound());
+     //       e.printStackTrace();
+    //    } catch (FileNotFoundException e) {
+     //       e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (outputStream != null) {
+            if (writer != null) {
                 try {
-                    outputStream.close();
+                    writer.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

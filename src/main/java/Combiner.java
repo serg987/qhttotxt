@@ -41,7 +41,7 @@ public class Combiner {
                 long startUnixDate = message.unixDate * 1000L;
                 while (messageHashMap.containsKey(startUnixDate) && !duplicateFound) {
                     Message messageFromSet = messageHashMap.get(startUnixDate);
-                    if (Arrays.equals(messageFromSet.getMessageByteArray(), message.getMessageByteArray())) {
+                    if (messageFromSet.messageText.equals(message.messageText)) {
                         duplicateFound = true;
                         chat.messages.remove(message);
                         i--;

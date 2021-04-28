@@ -25,7 +25,10 @@ public class Main {
         try {
             System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
                     Configuration.recursiveSearch, Configuration.combineHistories,
-                    new String(Configuration.ownNickName.getBytes(StandardCharsets.UTF_8), Configuration.defaultCodepage), Configuration.zoneId, Configuration.defaultCodepage);
+                    new String(Configuration.ownNickName.getBytes(StandardCharsets.UTF_8),
+                            Configuration.defaultCodepage),
+                    Configuration.zoneId,
+                    Configuration.defaultCodepage);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -72,7 +75,8 @@ public class Main {
                             break;
                         case 'n':
                             Configuration.ownNickName = Commons
-                                        .createInternalJavaStringForOutsideText(argsList.get(i + 1));
+                                    .guessCodePageAndConvertIfNeeded(argsList.get(i + 1).getBytes());
+                                        //.createInternalJavaStringForOutsideText();
                             i++;
                             break;
                     }

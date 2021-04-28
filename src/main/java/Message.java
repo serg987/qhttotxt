@@ -14,6 +14,7 @@ public class Message {
     public int messageLength;
     public int corruptedBytesNum;
     public boolean isEncoded = false;
+    public String messageText;
     private byte[] messageBytes;
     private byte[] decodedBytes;
 
@@ -32,7 +33,8 @@ public class Message {
     }
 
     public void setMessageByteArray(byte[] bytes) {
-        messageBytes = bytes;
+        byte[] messageBytes = (isEncoded) ? decodeBytes(bytes) : bytes;
+        messageText = Commons.guessCodePageAndConvertIfNeeded(messageBytes);
     }
 
     public void addLineToMessageByteArray(byte[] bytes) {
@@ -42,8 +44,13 @@ public class Message {
         messageBytes = newMessageBytes;
     }
 
+    public void addLineToMessageText(String message) {
+        messageText.concat(System.getProperty("line.separator"));
+        messageText.concat(message);
+    }
+
     public byte[] getMessageByteArray() {
-        if (isEncoded) return getDecodedMessageBytes();
+      //  if (isEncoded) return getDecodedMessageBytes();
         return messageBytes;
     }
 
@@ -54,6 +61,12 @@ public class Message {
                 decodedBytes[i] = (byte) (255 - (messageBytes[i] & 0xFF) - i - 1);
         }
         return decodedBytes;
+    }
+
+    private byte[] decodeBytes(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++)
+            bytes[i] = (byte) (255 - (bytes[i] & 0xFF) - i - 1);
+        return bytes;
     }
 
     enum typesOfMsgField {

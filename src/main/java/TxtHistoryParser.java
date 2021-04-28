@@ -1,10 +1,9 @@
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -70,7 +69,7 @@ message
         HashMap<Path, Chat> chats = new HashMap<>();
         List<Path> paths = IOHelper.getPathListTxt();
         for (Path path : paths) {
-            List<String> fileLines = IOHelper.convertFileToStrings(path, Charset.forName(Configuration.defaultCodepage));
+            List<String> fileLines = IOHelper.convertFileToStrings(path);
             Chat chat = TxtHistoryParser.parseChatFromTxt(path, fileLines);
             if (chat != null) chats.put(path, chat);
         }
@@ -116,8 +115,12 @@ message
             e.printStackTrace();
         } finally {
             try {
-                if (fs != null) fileChannel.close();
                 if (fileChannel != null) fileChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (fs != null) fs.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -125,18 +128,16 @@ message
     }
 
     private static void parseQipMessage() throws IOException {
-        String currentString = new String(readBytesOfLineFromChannel(),
-                Configuration.defaultCodepage);
+        String currentString = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
         Matcher m = qipIcqSeparatorPattern.matcher(currentString);
         if (m.find()) {
             Message message = new Message();
             char messageDirection = currentString.charAt(currentString.length() - 2);
             if (messageDirection == '>') message.isSent = true;
-            String header = new String(readBytesOfLineFromChannel(),
-                    Configuration.defaultCodepage);
+            String header = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
             String headerTime = header.split("\\(")[1].replace(")", "");
             message.unixDate = Commons.parseDateTime(headerTime);
-            message.setMessageByteArray(readBytesOfLineFromChannel());
+            message.messageText = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
             boolean foundAnotherString = true;
             while (channelAvailableBytes() > 0 && foundAnotherString) {
                 List<String> nextTwoLines = tryNextNLines(2);
@@ -146,8 +147,8 @@ message
                 }
                 m = qipIcqSeparatorPattern.matcher(nextTwoLines.get(1));
                 if (!m.find()) {
-                    message.addLineToMessageByteArray(newLineBytes);
-                    message.addLineToMessageByteArray(readBytesOfLineFromChannel());
+                    message.addLineToMessageText(
+                            Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel()));
                 } else {
                     foundAnotherString = false;
                     readBytesOfLineFromChannel();
@@ -158,8 +159,7 @@ message
     }
 
     private static void parseRnqMessage() throws IOException {
-        String currentString = new String(readBytesOfLineFromChannel(),
-                Configuration.defaultCodepage);
+        String currentString = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
         Matcher m = rnqLineHeaderPattern.matcher(currentString);
         if (m.find()) {
             Message message = new Message();
@@ -167,7 +167,7 @@ message
             String uinInMessage = headerWords[2];
             if (!uinInMessage.equals(chat.uin)) message.isSent = true;
             message.unixDate = Commons.parseDateTime(headerWords[0] + " " + headerWords[1]);
-            message.setMessageByteArray(readBytesOfLineFromChannel());
+            message.messageText = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
             boolean foundAnotherString = true;
             while (channelAvailableBytes() > 0 && foundAnotherString) {
                 List<String> nextThreeLines = tryNextNLines(3);
@@ -177,8 +177,8 @@ message
                 }
                 m = rnqLineHeaderPattern.matcher(nextThreeLines.get(2));
                 if (!m.find()) {
-                    message.addLineToMessageByteArray(newLineBytes);
-                    message.addLineToMessageByteArray(readBytesOfLineFromChannel());
+                    message.addLineToMessageText(Commons
+                            .guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel()));
                 } else {
                     foundAnotherString = false;
                     readBytesOfLineFromChannel();
@@ -191,7 +191,7 @@ message
 
     private static void parseMchatMessage() throws IOException {
         byte[] lineBytes = readBytesOfLineFromChannel();
-        String currentString = new String(lineBytes, Configuration.defaultCodepage);
+        String currentString = Commons.guessCodePageAndConvertIfNeeded(lineBytes);
         Matcher m = mchatLineHeaderPattern.matcher(currentString);
         if (m.find()) {
             Message message = new Message();
@@ -202,14 +202,14 @@ message
             lineHeader = lineHeader.replace("" + messageDirection, "");
             message.unixDate = Commons.parseDateTime(lineHeader);
             byte[] lineBytesWithoutHeader = Arrays.copyOfRange(lineBytes, headerLength, lineBytes.length);
-            message.setMessageByteArray(lineBytesWithoutHeader);
+            message.messageText = Commons.guessCodePageAndConvertIfNeeded(lineBytesWithoutHeader);
             boolean foundAnotherString = true;
             while (channelAvailableBytes() > 0 && foundAnotherString) {
                 String nextStr = tryNextString();
                 m = mchatLineHeaderPattern.matcher(nextStr);
                 if (!m.find()) {
-                    message.addLineToMessageByteArray(newLineBytes);
-                    message.addLineToMessageByteArray(readBytesOfLineFromChannel());
+                    message.addLineToMessageText(Commons
+                            .guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel()));
                 } else {
                     foundAnotherString = false;
                 }
@@ -222,7 +222,7 @@ message
         List<String> out = new ArrayList<>();
         long previousPosition = fileChannel.position();
         while (channelAvailableBytes() > 0 && n > 0) {
-            String str = new String(readBytesOfLineFromChannel(), Configuration.defaultCodepage);
+            String str = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
             out.add(str);
             n--;
         }
@@ -265,7 +265,7 @@ message
 
     private static String tryNextString() throws IOException {
         long previousPosition = fileChannel.position();
-        String out = new String(readBytesOfLineFromChannel(), Configuration.defaultCodepage);
+        String out = Commons.guessCodePageAndConvertIfNeeded(readBytesOfLineFromChannel());
         fileChannel.position(previousPosition);
         return out;
     }

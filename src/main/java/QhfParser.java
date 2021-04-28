@@ -1,9 +1,9 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class QhfParser {
     private static File file;
@@ -56,7 +56,7 @@ public class QhfParser {
         String txtFileName = path.getFileName().toString()
                 .replace(".qhf", "").replace(".ahf", "")
                 .concat("_DAMAGED.txt");
-        IOHelper.saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
+        IOHelper.saveChatToTxtNew(chat, Paths.get(path.getParent().toString(), txtFileName));
     }
 
     private static Message parseMessage() throws IOException {
@@ -67,8 +67,7 @@ public class QhfParser {
         fillMessageData(m);
         // sometimes there are messages with 0 length. handle it properly
         if (m.msgBlockSize == 27) {
-            m.setMessageByteArray(
-                    Configuration.messageWithZeroLength.getBytes(Configuration.defaultCodepage));
+            m.messageText = Configuration.messageWithZeroLength;
             return m;
         }
         if ((m.msgBlockSize - m.messageLength) != 27) {
@@ -76,8 +75,7 @@ public class QhfParser {
             fileChannel.position(previousChannelPosition);
             m.messageLength = readInt32(0);
             if (m.messageLength == 0) {
-                m.setMessageByteArray(
-                        Configuration.messageWithZeroLength.getBytes(Configuration.defaultCodepage));
+                m.messageText = Configuration.messageWithZeroLength;
                 return m;
             }
             m.isEncoded = true;
@@ -168,7 +166,13 @@ public class QhfParser {
         if (channelAvailableBytes() >= length) {
             ByteBuffer buffer = ByteBuffer.allocate(length);
             fileChannel.read(buffer);
-            return new String(buffer.array(), StandardCharsets.UTF_8).trim();
+            byte[] arr = buffer.array();
+            int i = arr.length - 1;
+            while (i > 0 && arr[i] == 0) {
+                i--;
+            }
+            arr = Arrays.copyOfRange(arr, 0, i + 1);
+            return Commons.guessCodePageAndConvertIfNeeded(arr).trim();
         }
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
     }

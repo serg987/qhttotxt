@@ -12,4 +12,8 @@ public class Chat {
     String nickName;
 
     public List<Message> messages = new ArrayList<>();
+
+    public String getNickNameForFileName() {
+        return (uin.equals(nickName)) ? "" : "_" + nickName.replaceAll("[\\\\/:*?\"<>|]", "");
+    }
 }
