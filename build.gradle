@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'org.serg987'
-version '0.9a'
+version '1.0a'
 
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {

@@ -1,4 +1,4 @@
-# qhttotxt - QIP history (.qhf и .ahf) to .txt converter #
+# qhttotxt - QIP history (.qhf, .ahf and .txt) to .txt combiner and converter #
 
 ### Prehistory ###
 At the end of the 00s and at the beginning of the 10s QIP messenger got widespread. It worked on ICQ protocol. The 
@@ -6,7 +6,9 @@ messenger had a mobile version - QIP PDA. As a difference from other messengers 
 QIP stored it in internal formats: .qhf and .ahf. Moreover, QIP for PC encrypted the history as well. Besides, as most 
 messengers at that time, there was no synchronization between devices and it was possible when messages from the same 
 contact were in different places. And if there is a folder "Archive" with .ahf files, messages from the same contact 
-will be in separate files as well.
+will be in separate files as well. Finally, the history can be stored in plain txt files form messengers like Mchat or 
+converted from ICQ, QIP and RnQ with third-party tools. This makes a lot of mess and combining of files takes a lot of 
+efforts.
 
 Several programs have been developed to translate QIP history into text files, however, as of April 2021, they are 
 either not available or do not work on modern OSs. Anyway, the author was not able to find a working version in the 
@@ -16,7 +18,8 @@ public domain.
 
 qhttotxt is a small Java program that allows converting QIP internal history files (.qhf and .ahf) into human-readble 
 .txt files. The program is able to combine messages from different files for one contact, choosing unique ones and 
-putting them in accordance with the time of sending/receiving.
+putting them in accordance with the time of sending/receiving. In version 1.0a it is possible to get history from txt 
+files with certain formats (see below), and combine and save contact lists from .cl and .cbd files.
 
 Also, there are minimal options for recovering corrupted messages and files. However, the author does not have a large 
 number of files for testing, so it is likely that some corrupted files will contain missing messages.
@@ -38,7 +41,10 @@ Advanced options are available using parameters (can be in any order):
 to convert several folders, place them into one root folder. Use the `-r` switch and specify the path to root folder.
 
 `-с` - combining messages from one contact. If the `-r` switch is provided, then the output files will be placed in 
-the working directory. Only unique messages are combined, all duplicates are removed.
+the working directory. Only unique messages are combined, all duplicates are removed. When the key `-c` is set, there 
+will be an attempt to find txt files in QIP/ICQ, Mchat and RnQ formats (formats description is below, as well as an 
+**important** requirements to thier names). There will be an attempt to find contact lists files .cl and .cbd, combine 
+and save them to a single one. Only UINs, nicknames and groups are used from contact lists. 
 
 `-h` - short help.
 
@@ -67,16 +73,68 @@ Convert file `C:\Users\User\Documents\file.qhf` only (file `qhttotxt.jar` can be
 `> java -jar qhttotxt.jar C:\Users\User\Documents\file.qhf`
 
 Covert files in `C:\Users\User\Documents` and all subdirectories, set the nickname "John Snow" and codepage 
-"windows-1251" (standart for Russian). File `qhttotxt.jar` can be in any place:
+"windows-1251" (standard for Russian). File `qhttotxt.jar` can be in any place:
 
 `> java -jar qhttotxt.jar -r -n "John Snow" -p "windows-1251" C:\Users\User\Documents`
 
 Covert files in `C:\Users\User\Documents` and all subdirectories, combine histories from different files, set the 
-nickname "John Snow" and codepage "windows-1251" (standart for Russian), timezone "Europe/Moscow" (full set of keys). 
+nickname "John Snow" and codepage "windows-1251" (standard for Russian), timezone "Europe/Moscow" (full set of keys). 
 File `qhttotxt.jar` can be in any place: 
 
 `> java -jar qhttotxt.jar -c -n "John Snow" -p "windows-1251" -z "Europe/Moscow" -r C:\Users\User\Documents`
 
+## Description of text file formats recognizing by the program ##
+
+If your files look like the formats below, qhftotxt will try to read the and combine with other existing files. 
+**Important!** Filenames of txt files **MUST** be `{contact_uin}.txt`, i.e. `123456789.txt`. It is the name of the file 
+that will determine the UIN of the contact. If the filename has a different pattern, change it manually. If there are 
+some files with the same name, just put them into subdirectories and use `-r` key.
+
+### qip/icq: ###
+``` 
+{Beginning of the file}
+-------------------------------------->- (separator, `<` - received message, `>` - sent message)
+{Owner_nick} (21:48:51 18/08/2015)
+message
+
+
+--------------------------------------<-
+{contact_nick} (14:28:50 19/10/2015)
+Message
+
+
+--------------------------------------<-
+... 
+```
+
+### Mchat: ###
+```
+{Beginning of the file}
+28.05.08 10:13:17<message
+28.05.08 10:15:26>message
+28.05.08 10:21:39<message
+message str2
+28.05.08 10:21:59>message
+```
+### RnQ (converted with RnQHistoryReader) ###
+```
+{Beginning of the file}
+Чат между {Owner_uin} и {contactUin}
+
+
+13.10.2006 10:48:00 {contactUin}
+message
+
+
+13.10.2006 10:48:40 {Owner_uin}
+message
+
+
+13.10.2006 10:54:58 {contactUin}
+message
+
+
+```
 
 ## QHF (AHF) format description ##
 

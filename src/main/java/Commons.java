@@ -50,9 +50,6 @@ public class Commons {
     }
 
     public static Charset guessCharset(byte[] bytes) {
-        String utf8_1 = new String(bytes, StandardCharsets.UTF_8);
-        String cp1251 = new String(bytes, Charset.forName(Configuration.defaultCodepage));
-        String utf16 = new String(bytes, StandardCharsets.UTF_16);
         int i = 0;
         int numberOfBelowTen = 0;
         int numberOf65K = 0;

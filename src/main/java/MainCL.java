@@ -31,11 +31,7 @@ public class MainCL {
         }
 
         for (Path path : chatMap.keySet()) {
-            try {
                 IOHelper.saveChatToTxt(chatMap.get(path), path);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
     }

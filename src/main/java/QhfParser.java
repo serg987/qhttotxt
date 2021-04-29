@@ -45,11 +45,14 @@ public class QhfParser {
             if (fileChannel != null) fileChannel.close();
             if (fs != null) fs.close();
         }
+        String logMsg = String.format(Configuration.foundTxtChatWith, "QIP(QHF/ANF)", chat.uin, chat.numberOfMsgs)
+                + ((chat.messages.get(0).isEncoded) ? Configuration.chatIsEncoded : "");
+        System.out.println(logMsg);
 
         return chat;
     }
 
-    private static void saveCorruptedChat(Path path, Chat chat) throws IOException {
+    private static void saveCorruptedChat(Path path, Chat chat) {
         System.out.printf((Configuration.tryingToSaveCorruptedFile) + "%n",
                 path.getFileName().toAbsolutePath().toString(),
                 chat.messages.size(), chat.numberOfMsgs);

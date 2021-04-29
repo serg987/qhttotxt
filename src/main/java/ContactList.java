@@ -4,17 +4,17 @@ import java.util.List;
 
 public class ContactList {
 
-    private static HashMap<String, Contact> contactList = new HashMap<>();
+    private static final HashMap<String, Contact> contactList = new HashMap<>();
 
     public void addContact(String id, String name, String group) {
         contactList.computeIfPresent(id, (s, contact) -> contact.update(name, group));
         contactList.putIfAbsent(id, new Contact(id, name, group));
     }
 
-    class Contact {
-        public String id;
-        public List<String> displayNames;
-        public List<String> groups;
+    static class Contact {
+        public final String id;
+        public final List<String> displayNames;
+        public final List<String> groups;
 
         Contact(String id, String name, String group) {
             displayNames = new ArrayList<>();

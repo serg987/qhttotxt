@@ -1,12 +1,13 @@
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ContactListsParser {
 
-    private static ContactList contactList = new ContactList();
+    private static final ContactList contactList = new ContactList();
 
     public static void parseContactListFiles() {
         parseCbdFiles();
@@ -15,22 +16,22 @@ public class ContactListsParser {
         if (cLSize == 0) {
             System.out.println(Configuration.noContactListsFound);
         } else {
-            System.out.println(String.format(Configuration.foundNContacts, cLSize));
+            System.out.printf((Configuration.foundNContacts) + "%n", cLSize);
         }
 
     }
 
     private static void parseCbdFiles() {
         List<Path> pathList = IOHelper.getPathListCdb();
-        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList)
-                .values().stream().collect(Collectors.toList());
+        List<List<String>> cdbFiles = new ArrayList<>(IOHelper.convertFilesToStrings(pathList)
+                .values());
         for (List<String> fileLInes : cdbFiles) parseCdb(fileLInes);
     }
 
     private static void parseClFiles() {
         List<Path> pathList = IOHelper.getPathListCl();
-        List<List<String>> cdbFiles = IOHelper.convertFilesToStrings(pathList)
-                .values().stream().collect(Collectors.toList());
+        List<List<String>> cdbFiles = new ArrayList<>(IOHelper.convertFilesToStrings(pathList)
+                .values());
         for (List<String> fileLines : cdbFiles) parseCl(fileLines);
     }
 
@@ -67,9 +68,9 @@ public class ContactListsParser {
         StringBuilder stringBuilder = new StringBuilder();
         FileWriter writer = null;
 
-        System.out.println(String.format(Configuration.savingContactList,
+        System.out.printf((Configuration.savingContactList) + "%n",
                 path.toAbsolutePath().toString(),
-                ContactList.getContactList().size()));
+                ContactList.getContactList().size());
         HashMap<String, ContactList.Contact> contactList = ContactList.getContactList();
         List<String> sortedUins = contactList.keySet().stream().sorted().collect(Collectors.toList());
         for (String uin : sortedUins) {

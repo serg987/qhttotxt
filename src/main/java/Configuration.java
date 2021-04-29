@@ -1,5 +1,3 @@
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.util.regex.Pattern;
 
@@ -17,9 +15,9 @@ public class Configuration {
     // Patterns for parsing txt files
     public static final String qip_icq_separator = "^[-]{38}[<>][-]";
     public static final String qip_icq_timeline = "^[\\d|\\p{L}|\\s|@|\\.]*\\s[(][\\d|:]*\\s[\\d|\\/|\\.]*[)]";
-    public static final String mchat_line_header = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s[\\d]{1,2}([:][\\d]{2}){2}[<|>]";
+    public static final String mchat_line_header = "^([\\d]{2}[/|\\.]){2}[\\d]{2,4}\\s[\\d]{1,2}([:][\\d]{2}){2}[<|>]";
     public static final String mchat_line = mchat_line_header + ".*";
-    public static final String rnq_line = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s" +
+    public static final String rnq_line = "^([\\d]{2}[/|\\.]){2}[\\d]{2,4}\\s" +
             "([\\d]{2}[:]){2}[\\d]{2}\\s[\\d]{1,12}\\s$";
 
     public static final Pattern mchatLineHeaderPattern = Pattern.compile(mchat_line_header);
@@ -30,7 +28,6 @@ public class Configuration {
     public static final byte[] newLineBytes = lineSeparator.getBytes();
 
     // Local service messages
-    private static final String noCodepageFound = "Codepage %s cannot be applied to the text.";
     public static final String noBytesAvailable = "Unexpected end of file %s. File may be damaged.";
     public static final String notQhfFile = "The file %s is not a qip history file.";
     public static final String cannotReadMsg = "File %s is corrupted! Cannot read message.";
@@ -66,6 +63,7 @@ public class Configuration {
     public static final String foundNContacts = "Found %d contacts.";
     public static final String savingContactList = "Saving contact list to '%s' - %d contacts";
     public static final String foundTxtChatWith = "Found %s chat with %s. It has %d messages.";
+    public static final String chatIsEncoded =" Chat is encoded";
 
     public static final String helpMsg = "\n\tParameters (all are optional):\n" +
             "{path} - set the path (current path by default, only one path allowed)\n" +

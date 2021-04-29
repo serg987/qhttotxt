@@ -28,9 +28,8 @@ public class DuplicateChecker {
                 if (m.find()) {
                     String headerTime = str.split("\\(")[1].replace(")", "");
                     int unixDate = Commons.parseDateTime(headerTime);
-                    Integer time = new Integer(unixDate);
-                    timeMap.computeIfPresent(time, (k, v) -> v + 1);
-                    timeMap.putIfAbsent(time, 1);
+                    timeMap.computeIfPresent(unixDate, (k, v) -> v + 1);
+                    timeMap.putIfAbsent(unixDate, 1);
                 }
             }
             timeMap = timeMap.entrySet().stream().filter(e -> e.getValue() > 1)

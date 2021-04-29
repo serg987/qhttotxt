@@ -68,13 +68,13 @@ message
         if (historyType.equals(txtHistoryType.NO_HISTORY)) return null;
         chat = new Chat();
         chat.uin = path.getFileName().toString().toLowerCase().replace(".txt", "");
-        chat.nickName = chat.uin; // TODO delete??? after debugging; populating should be by contactlist
+        chat.nickName = chat.uin;
         chat.uinLength = chat.uin.length();
         parseChat();
-        System.out.println(String.format(Configuration.foundTxtChatWith,
+        System.out.printf((Configuration.foundTxtChatWith) + "%n",
                 historyType.name(),
                 chat.uin,
-                chat.messages.size()));
+                chat.messages.size());
 
         return chat;
     }

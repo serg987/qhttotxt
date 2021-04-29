@@ -25,11 +25,7 @@ public class IOHelper {
                     .replace(".qhf", "").replace(".ahf", ""),
                     chat);
             Path outPath = Paths.get(path.getParent().toString(), fileName);
-            try {
                 saveChatToTxt(chat, outPath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         });
         System.out.println(Configuration.done);
     }
@@ -75,7 +71,7 @@ public class IOHelper {
         List<String> fileLines = new ArrayList<>();
         byte[] partForCheckingIfUtf16 = Arrays.copyOfRange(fileBytes,
                 0,
-                (fileBytes.length > 100) ? 100 : fileBytes.length);
+                Math.min(fileBytes.length, 100));
         Charset charset = Commons.guessCharset(partForCheckingIfUtf16);
         if (charset.equals(StandardCharsets.UTF_16)) {
             InputStream stream = new ByteArrayInputStream(fileBytes);
@@ -99,11 +95,7 @@ public class IOHelper {
         chatHashMap.forEach((uin, chat) -> {
             Path outPath = Paths.get(Configuration.workingDir,
                     concatWithContactNickNameOwnNickNameTxt(uin, chat));
-            try {
                 saveChatToTxt(chat, outPath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         });
 
         System.out.println(Configuration.done);
@@ -112,10 +104,9 @@ public class IOHelper {
 
     private static List<Path> getPathList(String[] extensions) {
         List<Path> files = new ArrayList<>();
-        System.out.println(
-                String.format(Configuration.analyzingFolders,
-                        Commons.populateStringWithListElems(
-                                Arrays.asList(extensions)).toString()));
+        System.out.printf((Configuration.analyzingFolders) + "%n",
+                Commons.populateStringWithListElems(
+                        Arrays.asList(extensions)).toString());
         Path filePath = Paths.get(Configuration.workingDir);
         if (!Files.exists(filePath)) {
             System.out.printf((Configuration.noPathFound) + "%n", Configuration.workingDir);
@@ -128,7 +119,7 @@ public class IOHelper {
                         ((path, basicFileAttributes) -> basicFileAttributes.isRegularFile()))
                         .filter(file -> {
                                     String fileName = file.getFileName().toString().toLowerCase();
-                                    return Arrays.stream(extensions).anyMatch(s -> fileName.endsWith(s));
+                                    return Arrays.stream(extensions).anyMatch(fileName::endsWith);
                                 }
                         )
                         .collect(Collectors.toList());
@@ -164,7 +155,7 @@ public class IOHelper {
         return getPathList(extensions);
     }
 
-    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
+    public static void saveChatToTxt(Chat chat, Path path) {
         File fileToSave = new File(path.toUri());
         FileWriter writer = null;
         StringBuilder stringBuilder = new StringBuilder();
