@@ -59,8 +59,7 @@ public class ContactList {
 
     public static void populateChatWithName(Chat chat) {
         String uin = chat.uin;
-
-        if (!chat.nickName.equals(uin) &&
+        if (chat.nickName.equals(uin) &&
                 contactList.containsKey(uin) &&
                 !contactList.get(uin).displayNames.isEmpty()) {
             chat.nickName = contactList.get(uin).displayNames.get(0);

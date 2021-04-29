@@ -1,5 +1,4 @@
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
@@ -9,19 +8,18 @@ public class Combiner {
         System.out.println(Configuration.combiningFiles);
         HashMap<String, Chat> chatHashMap = new HashMap<>();
         HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir();
-        // Experimental: combine with existing txt history
         pathChatHashMap.putAll(TxtHistoryParser.parseChatsFromTxt());
 
         pathChatHashMap.forEach((uin, chat) -> {
-            chatHashMap.putIfAbsent(chat.uin, chat);
             chatHashMap.computeIfPresent(chat.uin, (uinInMap, ch) -> {
                 if (ch.nickName.equals(ch.uin)) ch.nickName = chat.nickName;
                 ch.messages.addAll(chat.messages);
                 return ch;
             });
+            chatHashMap.putIfAbsent(chat.uin, chat);
         });
 
-        pathChatHashMap.values().forEach(ContactList::populateChatWithName);
+        chatHashMap.values().forEach(ContactList::populateChatWithName);
 
         System.out.println(Configuration.done);
         deleteDuplicates(chatHashMap);

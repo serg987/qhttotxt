@@ -1,6 +1,7 @@
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
+import java.util.regex.Pattern;
 
 public class Configuration {
     public static String ownNickName;
@@ -12,6 +13,21 @@ public class Configuration {
 
     // Local constants
     public static final String contactListName = "contacts.txt";
+
+    // Patterns for parsing txt files
+    public static final String qip_icq_separator = "^[-]{38}[<>][-]";
+    public static final String qip_icq_timeline = "^[\\d|\\p{L}|\\s|@|\\.]*\\s[(][\\d|:]*\\s[\\d|\\/|\\.]*[)]";
+    public static final String mchat_line_header = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s[\\d]{1,2}([:][\\d]{2}){2}[<|>]";
+    public static final String mchat_line = mchat_line_header + ".*";
+    public static final String rnq_line = "^([\\d]{2}[\\/|\\.]){2}[\\d]{2,4}\\s" +
+            "([\\d]{2}[:]){2}[\\d]{2}\\s[\\d]{1,12}\\s$";
+
+    public static final Pattern mchatLineHeaderPattern = Pattern.compile(mchat_line_header);
+    public static final Pattern rnqLineHeaderPattern = Pattern.compile(rnq_line);
+    public static final Pattern qipIcqSeparatorPattern = Pattern.compile(qip_icq_separator);
+
+    public static final String lineSeparator = System.getProperty("line.separator");
+    public static final byte[] newLineBytes = lineSeparator.getBytes();
 
     // Local service messages
     private static final String noCodepageFound = "Codepage %s cannot be applied to the text.";
@@ -45,6 +61,11 @@ public class Configuration {
     public static final String configMsg = "Current configuration:\n" +
             "Working path: %s\n" +
             "Go recursive: %b; combine histories: %b; your nickname: '%s'; time zone: '%s'; codepage: '%s'";
+    public static final String noContactListsFound = "No contact list files found or no contacts were " +
+            "found inside them";
+    public static final String foundNContacts = "Found %d contacts.";
+    public static final String savingContactList = "Saving contact list to '%s' - %d contacts";
+    public static final String foundTxtChatWith = "Found %s chat with %s. It has %d messages.";
 
     public static final String helpMsg = "\n\tParameters (all are optional):\n" +
             "{path} - set the path (current path by default, only one path allowed)\n" +
@@ -81,9 +102,4 @@ public class Configuration {
         recursiveSearch = false;
         combineHistories = false;
     }
-
-    public static String getNoCodepageFound() {
-        return String.format(Configuration.noCodepageFound, Configuration.defaultCodepage);
-    }
-
 }

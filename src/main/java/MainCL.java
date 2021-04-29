@@ -1,5 +1,4 @@
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -25,15 +24,15 @@ public class MainCL {
         Map<Path, List<String>> map = IOHelper.convertFilesToStrings(paths);
         Map<Path, Chat> chatMap = new HashMap<>();
         for (Path path : paths) {
-            Chat chat = TxtHistoryParser.parseChatFromTxt(path, map.get(path));
+       //     Chat chat = TxtHistoryParser.parseChatFromTxt(path, map.get(path));
             File fileToSave = new File(path.toAbsolutePath().toString().replace(".txt", "-new.txt"));
             Path newPath = fileToSave.toPath();
-            chatMap.put(newPath, chat);
+       //     chatMap.put(newPath, chat);
         }
 
         for (Path path : chatMap.keySet()) {
             try {
-                IOHelper.saveChatToTxtNew(chatMap.get(path), path);
+                IOHelper.saveChatToTxt(chatMap.get(path), path);
             } catch (IOException e) {
                 e.printStackTrace();
             }

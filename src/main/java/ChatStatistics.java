@@ -79,7 +79,7 @@ public class ChatStatistics {
     }
 
     private static <T> void addToHasMap(HashMap<T, Integer> map, T toAdd) {
-        map.putIfAbsent(toAdd, 1);
         map.computeIfPresent(toAdd, (k, v) -> v + 1);
+        map.putIfAbsent(toAdd, 1);
     }
 }

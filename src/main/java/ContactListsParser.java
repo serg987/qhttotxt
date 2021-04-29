@@ -1,5 +1,4 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +13,9 @@ public class ContactListsParser {
         parseClFiles();
         int cLSize = ContactList.getContactList().size();
         if (cLSize == 0) {
-            System.out.println("No contact list files found or no contacts were found inside them");
+            System.out.println(Configuration.noContactListsFound);
         } else {
-            System.out.println("Found " + cLSize + " contacts.");
+            System.out.println(String.format(Configuration.foundNContacts, cLSize));
         }
 
     }
@@ -65,12 +64,12 @@ public class ContactListsParser {
 
     public static void saveContactList(Path path) {
         File fileToSave = new File(path.toUri());
-        FileOutputStream outputStream = null;
         StringBuilder stringBuilder = new StringBuilder();
         FileWriter writer = null;
 
-        System.out.println("Saving contact list to '" +
-                path.toAbsolutePath().toString() + "' - " + ContactList.getContactList().size() + " contacts");
+        System.out.println(String.format(Configuration.savingContactList,
+                path.toAbsolutePath().toString(),
+                ContactList.getContactList().size()));
         HashMap<String, ContactList.Contact> contactList = ContactList.getContactList();
         List<String> sortedUins = contactList.keySet().stream().sorted().collect(Collectors.toList());
         for (String uin : sortedUins) {
@@ -83,17 +82,6 @@ public class ContactListsParser {
         try {
             writer = new FileWriter(fileToSave);
             writer.write(stringBuilder.toString());
-            //outputStream = new FileOutputStream(fileToSave);
-
-
-                //outputStream.write(stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
-
-          //  outputStream.flush();
-   //     } catch (UnsupportedEncodingException e) {
-    //        System.out.println(Configuration.getNoCodepageFound());
-     //       e.printStackTrace();
-    //    } catch (FileNotFoundException e) {
-     //       e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

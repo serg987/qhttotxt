@@ -1,5 +1,19 @@
 Known issues:
-
+Chat filenames are not populated with names in ContactList
 
 Todo:
-Check for actual repeats in output files
+Check for actual repeats in output files - Done
+
+Testplan (branch and master separately):
+Single qhf file
+Single qip file
+Single mchat file
+Single rnq file
+multiple QHFs (no combine)
+Multiple TXTs (no combine)
+Combine qhfs
+Combine texts only
+Combine texts with CL
+Combine qhfs, texts, CLs.
+
+AC: Proper filenames, no codepage issues in files >1 kb, no crashes, no duplicate messages with one time

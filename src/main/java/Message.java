@@ -15,8 +15,6 @@ public class Message {
     public int corruptedBytesNum;
     public boolean isEncoded = false;
     public String messageText;
-    private byte[] messageBytes;
-    private byte[] decodedBytes;
 
     public void setTypeOfMsgField(byte b) {
         switch (b) {
@@ -37,29 +35,8 @@ public class Message {
         messageText = Commons.guessCodePageAndConvertIfNeeded(messageBytes);
     }
 
-    public void addLineToMessageByteArray(byte[] bytes) {
-        byte[] newMessageBytes = new byte[messageBytes.length + bytes.length];
-        System.arraycopy(messageBytes, 0, newMessageBytes, 0, messageBytes.length);
-        System.arraycopy(bytes, 0, newMessageBytes, messageBytes.length, bytes.length);
-        messageBytes = newMessageBytes;
-    }
-
     public void addLineToMessageText(String message) {
-        messageText = messageText.concat(System.getProperty("line.separator")).concat(message);
-    }
-
-    public byte[] getMessageByteArray() {
-      //  if (isEncoded) return getDecodedMessageBytes();
-        return messageBytes;
-    }
-
-    private byte[] getDecodedMessageBytes() {
-        if (decodedBytes == null && messageBytes != null) {
-            decodedBytes = new byte[messageBytes.length];
-            for (int i = 0; i < messageBytes.length; i++)
-                decodedBytes[i] = (byte) (255 - (messageBytes[i] & 0xFF) - i - 1);
-        }
-        return decodedBytes;
+        messageText = messageText.concat(Configuration.lineSeparator).concat(message);
     }
 
     private byte[] decodeBytes(byte[] bytes) {

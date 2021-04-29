@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class IOHelper {
-    private static final byte[] lineSeparatorBytes = System.getProperty("line.separator").getBytes();
+    private static final byte[] lineSeparatorBytes = Configuration.newLineBytes;
     private static final int lineSeparatorLength = lineSeparatorBytes.length;
 
     public static void convertFiles() {
@@ -21,17 +21,22 @@ public class IOHelper {
     private static void saveFiles(HashMap<Path, Chat> chatHashMap) {
         System.out.println(Configuration.savingFiles);
         chatHashMap.forEach((path, chat) -> {
-            String fileName = path.getFileName().toString().toLowerCase()
-                    .replace(".qhf", "").replace(".ahf", "")
-                    .concat(chat.getNickNameForFileName()).concat(".txt");
+            String fileName = concatWithContactNickNameOwnNickNameTxt(path.getFileName().toString().toLowerCase()
+                    .replace(".qhf", "").replace(".ahf", ""),
+                    chat);
             Path outPath = Paths.get(path.getParent().toString(), fileName);
             try {
-                saveChatToTxtNew(chat, outPath);
+                saveChatToTxt(chat, outPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
         System.out.println(Configuration.done);
+    }
+
+    private static String concatWithContactNickNameOwnNickNameTxt(String str, Chat chat) {
+        return str.concat(chat.getNickNameForFileName()).concat("_with_").concat(Configuration.ownNickName)
+                .concat(".txt");
     }
 
     private static void printChatStatistics() { // TODO Service method; delete after debugging
@@ -92,10 +97,10 @@ public class IOHelper {
     public static void saveCombinedChats(HashMap<String, Chat> chatHashMap) {
         System.out.println(Configuration.savingFiles);
         chatHashMap.forEach((uin, chat) -> {
-            Path outPath = Paths.get(Configuration.workingDir, uin
-                    + chat.getNickNameForFileName() + "_" + Configuration.ownNickName + ".txt");
+            Path outPath = Paths.get(Configuration.workingDir,
+                    concatWithContactNickNameOwnNickNameTxt(uin, chat));
             try {
-                saveChatToTxtNew(chat, outPath);
+                saveChatToTxt(chat, outPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -159,7 +164,7 @@ public class IOHelper {
         return getPathList(extensions);
     }
 
-    public static void saveChatToTxtNew(Chat chat, Path path) throws IOException {
+    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
         File fileToSave = new File(path.toUri());
         FileWriter writer = null;
         StringBuilder stringBuilder = new StringBuilder();
@@ -199,51 +204,6 @@ public class IOHelper {
             }
         }
     }
-
-/*    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
-        File fileToSave = new File(path.toUri());
-
-        try (FileOutputStream outputStream = new FileOutputStream(fileToSave)) {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            if (Configuration.combineHistories) ContactList.addContactInfoToStrBuilder(stringBuilder, chat);
-
-            for (Message m : chat.messages) {
-                ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
-                stringBuilder.append("--------------------------------------")
-                        .append(m.isSent ? ">" : "<").append("-");
-                Commons.addCRtoStringBuilder(stringBuilder);
-                if (m.corruptedBytesNum > 0) {
-                    stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
-                    Commons.addCRtoStringBuilder(stringBuilder);
-                }
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
-                stringBuilder.setLength(0);
-                String nickName = (m.isSent) ? Configuration.ownNickName : chat.nickName;
-                outputStream.write(nickName.getBytes(StandardCharsets.UTF_8));
-                stringBuilder.append(" (")
-                        .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
-                        .append(")");
-                Commons.addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
-                stringBuilder.setLength(0);
-                String utf8 = new String(m.getMessageByteArray(), StandardCharsets.UTF_8);
-                String cp1251 = new String(m.getMessageByteArray(), Configuration.defaultCodepage);
-                String converted = Commons.guessCodePageAndConvertIfNeeded(m.getMessageByteArray());
-                // outputStream.write(m.getMessageByteArray());
-                stringBuilder.append(converted);
-                Commons.addCRtoStringBuilder(stringBuilder);
-                Commons.addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultCodepage));
-                stringBuilder.setLength(0);
-            }
-
-            outputStream.flush();
-        } catch (UnsupportedEncodingException e) {
-            System.out.println(Configuration.getNoCodepageFound());
-            e.printStackTrace();
-        }
-    }*/
 
     private static byte[] readFileToByteArray(Path path) {
         byte[] bytes = new byte[0];

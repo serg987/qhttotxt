@@ -50,5 +50,10 @@ public class RegexScratch {
         str1 = "09.12.08 09:03:44";
         Configuration.zoneId = ZoneId.of("Europe/Moscow");
         System.out.println(Commons.parseDateTime(str1));
+
+        String str4 = "aaa";
+        str4 = str4.concat("ddd").concat("bbb");
+        System.out.println(str4);
+
     }
 }

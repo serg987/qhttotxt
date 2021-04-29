@@ -8,7 +8,7 @@ import java.util.List;
 public class Commons {
 
     public static void addCRtoStringBuilder(StringBuilder stringBuilder) {
-        stringBuilder.append(System.getProperty("line.separator"));
+        stringBuilder.append(Configuration.lineSeparator);
     }
 
     public static StringBuilder populateStringWithListElems(List<String> stringList) {

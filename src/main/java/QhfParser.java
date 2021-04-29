@@ -56,7 +56,7 @@ public class QhfParser {
         String txtFileName = path.getFileName().toString()
                 .replace(".qhf", "").replace(".ahf", "")
                 .concat("_DAMAGED.txt");
-        IOHelper.saveChatToTxtNew(chat, Paths.get(path.getParent().toString(), txtFileName));
+        IOHelper.saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
     }
 
     private static Message parseMessage() throws IOException {

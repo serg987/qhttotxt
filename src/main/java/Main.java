@@ -1,4 +1,5 @@
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,16 +23,7 @@ public class Main {
 
         parseArgsAndCreateConfig(argsList);
 
-        try {
-            System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
-                    Configuration.recursiveSearch, Configuration.combineHistories,
-                    new String(Configuration.ownNickName.getBytes(StandardCharsets.UTF_8),
-                            Configuration.defaultCodepage),
-                    Configuration.zoneId,
-                    Configuration.defaultCodepage);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        printConfiguration();
         if (Configuration.combineHistories && Files.isDirectory(Paths.get(Configuration.workingDir))) {
             ContactListsParser.parseContactListFiles();
             if (!ContactList.getContactList().isEmpty()) {
@@ -42,6 +34,15 @@ public class Main {
         } else IOHelper.convertFiles();
 
         System.exit(0);
+    }
+
+    private static void printConfiguration() {
+        System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
+                Configuration.recursiveSearch, Configuration.combineHistories,
+                new String(Configuration.ownNickName.getBytes(StandardCharsets.UTF_8),
+                        Charset.forName(Configuration.defaultCodepage)),
+                Configuration.zoneId,
+                Configuration.defaultCodepage);
     }
 
     private static void parseArgsAndCreateConfig(List<String> argsList) {
@@ -76,7 +77,7 @@ public class Main {
                         case 'n':
                             Configuration.ownNickName = Commons
                                     .guessCodePageAndConvertIfNeeded(argsList.get(i + 1).getBytes());
-                                        //.createInternalJavaStringForOutsideText();
+                            //.createInternalJavaStringForOutsideText();
                             i++;
                             break;
                     }
