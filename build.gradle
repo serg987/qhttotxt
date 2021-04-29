@@ -9,12 +9,16 @@ version '1.0a'
 task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'QHF to TXT converter',
-                    'Implementation-Version': '0.99a',
-                    'Implementation-Vendor': 'Sergey Kislev',
+                    'Implementation-Version': '1.0a',
+                    'Implementation-Vendor': 'Sergey Kiselev',
                     'Main-Class': 'Main',
                     'Sealed': true
     }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    //from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+   // from { configurations.compile.collect()}
+    exclude('testfiles')
+  //  exclude('**/junit')
+ //   exclude('**/org/*')
     with jar
 }
 
