@@ -14,8 +14,7 @@ public class Message {
     public int messageLength;
     public int corruptedBytesNum;
     public boolean isEncoded = false;
-    private byte[] messageBytes;
-    private byte[] decodedBytes;
+    public String messageText;
 
     public void setTypeOfMsgField(byte b) {
         switch (b) {
@@ -23,40 +22,37 @@ public class Message {
             case 3: typeOfMessageField = typesOfMsgField.MESSAGE_SENDER; break;
             case 5: typeOfMessageField = typesOfMsgField.AUTH_REQUEST; break;
             case 6: typeOfMessageField = typesOfMsgField.FRIEND_REQUEST; break;
-            case 13: typeOfMessageField = typesOfMsgField.RECIEVED_OFFLINE; break;
-            case 14: typeOfMessageField = typesOfMsgField.AUTH_RECIEVED; break;
+            case 13: typeOfMessageField = typesOfMsgField.RECEIVED_OFFLINE; break;
+            case 14: typeOfMessageField = typesOfMsgField.AUTH_RECEIVED; break;
             case 80: typeOfMessageField = typesOfMsgField.TYPE_80; break;
             case 81: typeOfMessageField = typesOfMsgField.TYPE_81; break;
-            default: typeOfMessageField = typesOfMsgField.RECIEVED_ONLINE;
+            default: typeOfMessageField = typesOfMsgField.RECEIVED_ONLINE;
         }
     }
 
     public void setMessageByteArray(byte[] bytes) {
-        messageBytes = bytes;
+        byte[] messageBytes = (isEncoded) ? decodeBytes(bytes) : bytes;
+        messageText = Commons.guessCodePageAndConvertIfNeeded(messageBytes);
     }
 
-    public byte[] getMessageByteArray() {
-        if (isEncoded) return getDecodedMessageBytes();
-        return messageBytes;
+    public void addLineToMessageText(String message) {
+        messageText = messageText.concat(Configuration.lineSeparator).concat(message);
     }
 
-    private byte[] getDecodedMessageBytes() {
-        if (decodedBytes == null && messageBytes != null) {
-            decodedBytes = new byte[messageBytes.length];
-            for (int i = 0; i < messageBytes.length; i++)
-                decodedBytes[i] = (byte) (255 - (messageBytes[i] & 0xFF) - i - 1);
-        }
-        return decodedBytes;
+    private byte[] decodeBytes(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++)
+            bytes[i] = (byte) (255 - (bytes[i] & 0xFF) - i - 1);
+        return bytes;
     }
 
     enum typesOfMsgField {
-        RECIEVED_ONLINE,
+        RECEIVED_ONLINE,
         MESSAGE_SENDING_DATE,
         MESSAGE_SENDER,
         AUTH_REQUEST,
         FRIEND_REQUEST,
-        RECIEVED_OFFLINE,
-        AUTH_RECIEVED,
+        RECEIVED_OFFLINE,
+        AUTH_RECEIVED,
         TYPE_80,
         TYPE_81,
     }

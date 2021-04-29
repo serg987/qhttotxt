@@ -1,4 +1,7 @@
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.util.*;
@@ -19,15 +22,26 @@ public class Main {
 
         parseArgsAndCreateConfig(argsList);
 
-        System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
-                Configuration.recursiveSearch, Configuration.combineHistories,
-                Configuration.ownNickName, Configuration.zoneId, Configuration.defaultEncoding);
-
+        printConfiguration();
         if (Configuration.combineHistories && Files.isDirectory(Paths.get(Configuration.workingDir))) {
+            ContactListsParser.parseContactListFiles();
+            if (!ContactList.getContactList().isEmpty()) {
+                Path contactListPath = Paths.get(Configuration.workingDir, Configuration.contactListName);
+                ContactListsParser.saveContactList(contactListPath);
+            }
             Combiner.combineChats();
         } else IOHelper.convertFiles();
 
         System.exit(0);
+    }
+
+    private static void printConfiguration() {
+        System.out.printf((Configuration.configMsg) + "%n", Configuration.workingDir,
+                Configuration.recursiveSearch, Configuration.combineHistories,
+                new String(Configuration.ownNickName.getBytes(StandardCharsets.UTF_8),
+                        Charset.forName(Configuration.defaultCodepage)),
+                Configuration.zoneId,
+                Configuration.defaultCodepage);
     }
 
     private static void parseArgsAndCreateConfig(List<String> argsList) {
@@ -56,11 +70,13 @@ public class Main {
                             i++;
                             break;
                         case 'p':
-                            Configuration.defaultEncoding = argsList.get(i + 1);
+                            Configuration.defaultCodepage = argsList.get(i + 1);
                             i++;
                             break;
                         case 'n':
-                            Configuration.ownNickName = argsList.get(i + 1);
+                            Configuration.ownNickName = Commons
+                                    .guessCodePageAndConvertIfNeeded(argsList.get(i + 1).getBytes());
+                            //.createInternalJavaStringForOutsideText();
                             i++;
                             break;
                     }

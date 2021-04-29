@@ -1,22 +1,26 @@
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class Combiner {
     public static void combineChats() {
+        System.out.println(Configuration.combiningFiles);
         HashMap<String, Chat> chatHashMap = new HashMap<>();
         HashMap<Path, Chat> pathChatHashMap = IOHelper.getChatsFromDir();
-        System.out.println(Configuration.combiningFiles);
-        pathChatHashMap.forEach((key, chat) -> {
-            chatHashMap.putIfAbsent(chat.uin, chat);
+        pathChatHashMap.putAll(TxtHistoryParser.parseChatsFromTxt());
+
+        pathChatHashMap.forEach((uin, chat) -> {
             chatHashMap.computeIfPresent(chat.uin, (uinInMap, ch) -> {
                 if (ch.nickName.equals(ch.uin)) ch.nickName = chat.nickName;
                 ch.messages.addAll(chat.messages);
                 return ch;
             });
+            chatHashMap.putIfAbsent(chat.uin, chat);
         });
+
+        chatHashMap.values().forEach(ContactList::populateChatWithName);
+
         System.out.println(Configuration.done);
         deleteDuplicates(chatHashMap);
         sortMessagesByTime(chatHashMap);
@@ -35,7 +39,7 @@ public class Combiner {
                 long startUnixDate = message.unixDate * 1000L;
                 while (messageHashMap.containsKey(startUnixDate) && !duplicateFound) {
                     Message messageFromSet = messageHashMap.get(startUnixDate);
-                    if (Arrays.equals(messageFromSet.getMessageByteArray(), message.getMessageByteArray())) {
+                    if (messageFromSet.messageText.equals(message.messageText)) {
                         duplicateFound = true;
                         chat.messages.remove(message);
                         i--;

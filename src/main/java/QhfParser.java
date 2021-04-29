@@ -3,9 +3,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 public class QhfParser {
     private static File file;
@@ -33,6 +31,8 @@ public class QhfParser {
             chat.uin = readChars(chat.uinLength);
             chat.nickNameLength = readInt16(0);
             chat.nickName = readChars(chat.nickNameLength);
+            ContactList contactList = new ContactList();
+            contactList.addContact(chat.uin, chat.nickName, "");
 
             while (fs.available() > 6) {
                 chat.messages.add(parseMessage());
@@ -45,18 +45,21 @@ public class QhfParser {
             if (fileChannel != null) fileChannel.close();
             if (fs != null) fs.close();
         }
+        String logMsg = String.format(Configuration.foundTxtChatWith, "QIP(QHF/ANF)", chat.uin, chat.numberOfMsgs)
+                + ((chat.messages.get(0).isEncoded) ? Configuration.chatIsEncoded : "");
+        System.out.println(logMsg);
 
         return chat;
     }
 
-    private static void saveCorruptedChat(Path path, Chat chat) throws IOException {
+    private static void saveCorruptedChat(Path path, Chat chat) {
         System.out.printf((Configuration.tryingToSaveCorruptedFile) + "%n",
                 path.getFileName().toAbsolutePath().toString(),
                 chat.messages.size(), chat.numberOfMsgs);
         String txtFileName = path.getFileName().toString()
                 .replace(".qhf", "").replace(".ahf", "")
                 .concat("_DAMAGED.txt");
-        saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
+        IOHelper.saveChatToTxt(chat, Paths.get(path.getParent().toString(), txtFileName));
     }
 
     private static Message parseMessage() throws IOException {
@@ -67,8 +70,7 @@ public class QhfParser {
         fillMessageData(m);
         // sometimes there are messages with 0 length. handle it properly
         if (m.msgBlockSize == 27) {
-            m.setMessageByteArray(
-                    Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
+            m.messageText = Configuration.messageWithZeroLength;
             return m;
         }
         if ((m.msgBlockSize - m.messageLength) != 27) {
@@ -76,8 +78,7 @@ public class QhfParser {
             fileChannel.position(previousChannelPosition);
             m.messageLength = readInt32(0);
             if (m.messageLength == 0) {
-                m.setMessageByteArray(
-                        Configuration.messageWithZeroLength.getBytes(Configuration.defaultEncoding));
+                m.messageText = Configuration.messageWithZeroLength;
                 return m;
             }
             m.isEncoded = true;
@@ -129,46 +130,6 @@ public class QhfParser {
         m.messageLength = readInt16(0);
     }
 
-    public static void saveChatToTxt(Chat chat, Path path) throws IOException {
-        File fileToSave = new File(path.toUri());
-
-        try (FileOutputStream outputStream = new FileOutputStream(fileToSave)) {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            for (Message m : chat.messages) {
-                ZonedDateTime zonedDateTime = Instant.ofEpochSecond(m.unixDate).atZone(Configuration.zoneId);
-                stringBuilder.append("--------------------------------------")
-                        .append(m.isSent ? ">" : "<").append("-");
-                addCRtoStringBuilder(stringBuilder);
-                if (m.corruptedBytesNum > 0) {
-                    stringBuilder.append(String.format(Configuration.messageIsCorrupted, m.corruptedBytesNum));
-                    addCRtoStringBuilder(stringBuilder);
-                }
-                stringBuilder.append(m.isSent ? Configuration.ownNickName : chat.nickName)
-                        .append(" (")
-                        .append(zonedDateTime.format(DateTimeFormatter.ofPattern(Configuration.timePatternInTxt)))
-                        .append(")");
-                addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
-                stringBuilder.setLength(0);
-                outputStream.write(m.getMessageByteArray());
-                addCRtoStringBuilder(stringBuilder);
-                addCRtoStringBuilder(stringBuilder);
-                outputStream.write(stringBuilder.toString().getBytes(Configuration.defaultEncoding));
-                stringBuilder.setLength(0);
-            }
-
-            outputStream.flush();
-        } catch (UnsupportedEncodingException e) {
-            System.out.println(Configuration.getNoCodepageFound());
-            e.printStackTrace();
-        }
-    }
-
-    private static void addCRtoStringBuilder(StringBuilder stringBuilder) {
-        stringBuilder.append(System.getProperty("line.separator"));
-    }
-
 
     private static ByteBuffer allocateByteBufferReadAndResetPosition(int bytesToRead) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(bytesToRead);
@@ -208,7 +169,13 @@ public class QhfParser {
         if (channelAvailableBytes() >= length) {
             ByteBuffer buffer = ByteBuffer.allocate(length);
             fileChannel.read(buffer);
-            return new String(buffer.array(), Configuration.defaultEncoding).trim();
+            byte[] arr = buffer.array();
+            int i = arr.length - 1;
+            while (i > 0 && arr[i] == 0) {
+                i--;
+            }
+            arr = Arrays.copyOfRange(arr, 0, i + 1);
+            return Commons.guessCodePageAndConvertIfNeeded(arr).trim();
         }
         throw new IOException(String.format(Configuration.noBytesAvailable, file.getAbsolutePath()));
     }
