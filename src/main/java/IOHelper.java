@@ -35,12 +35,6 @@ public class IOHelper {
                 .concat(".txt");
     }
 
-    private static void printChatStatistics() { // TODO Service method; delete after debugging
-        HashMap<Path, Chat> chatHashMap = getChatsFromDir();
-        chatHashMap.values().forEach(ChatStatistics::collectStatistics);
-        ChatStatistics.printStatistics();
-    }
-
     public static HashMap<Path, Chat> getChatsFromDir() {
         List<Path> pathList = getPathListQHF();
         HashMap<Path, Chat> chatHashMap = new HashMap<>();
