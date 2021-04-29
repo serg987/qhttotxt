@@ -10,11 +10,11 @@ task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'QHF to TXT converter',
                     'Implementation-Version': '1.0a',
-                    'Implementation-Vendor': 'Sergey Kislev',
+                    'Implementation-Vendor': 'Sergey Kiselev',
                     'Main-Class': 'Main',
                     'Sealed': true
     }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    exclude('testfiles')
     with jar
 }
 
